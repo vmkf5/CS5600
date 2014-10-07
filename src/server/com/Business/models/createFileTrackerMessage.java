@@ -63,8 +63,8 @@ public class createFileTrackerMessage {
 	 */
 	@Override
 	public String toString() {
-		return "createtracker " + filename + " " + fileBytes + " " + description
-				+ " " + checkSum + " " + ipAddress + " " + port ;
+		return "<createtracker " + filename + " " + fileBytes + " " + description
+				+ " " + checkSum + " " + ipAddress + " " + port + ">\n" ;
 	}
 
 	/*
@@ -103,8 +103,15 @@ public class createFileTrackerMessage {
 		}
 	}
 
-
-
-
+    public createFileTrackerMessage(String filename, Integer size, String desc, String md5, String ip, Integer port) throws CreateTrackerException
+    {
+        //TODO: add error handling
+        this.filename     = filename;
+        this.fileBytes    = size;
+        this.description  = desc;
+        this.checkSum     = md5;
+        this.ipAddress    = ip;
+        this.port         = port;
+    }
 
 }

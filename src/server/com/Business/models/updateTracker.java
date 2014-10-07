@@ -1,6 +1,7 @@
 package com.Business.models;
 
 import com.Business.exception.UpdateTrackerException;
+import com.sun.deploy.net.UpdateTracker;
 
 /*
  * author: Venkata Prashant
@@ -56,8 +57,9 @@ public class updateTracker {
 	 */
 	@Override
 	public String toString() {
-		return "updatetracker " + filename + " " + startBytes + " " + endBytes + " "
-				+ ipAddress + " " + portNumber;
+		return "<updatetracker " + filename + " " + Integer.toString(startBytes) + " "
+                + Integer.toString(endBytes) + " "
+				+ ipAddress + " " + Integer.toString(portNumber) + ">\n";
 	}
 	
 	/*
@@ -96,6 +98,20 @@ public class updateTracker {
 			throw new UpdateTrackerException();
 		}
 	}
+    /* Description: Constructor for the peer side of operations to create an updateTracker from the necessary
+    information required to complete the action.
+    Version: 0.1
+
+     */
+    public updateTracker(String filename, Integer start, Integer end, String ip, Integer port) throws UpdateTrackerException
+    {
+        //TODO: add error handling
+        this.filename   = filename;
+        this.startBytes = start;
+        this.endBytes   = end;
+        this.ipAddress  = ip;
+        this.portNumber = port;
+    }
 	
 	
 

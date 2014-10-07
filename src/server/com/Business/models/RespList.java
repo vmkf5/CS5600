@@ -1,5 +1,4 @@
 package com.Business.models;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -13,7 +12,9 @@ import java.util.Iterator;
  * Version: 0.1
  */
 public class RespList {
-	
+
+    public String RESP_END = "<REP LIST END>\n";
+
 	//contains an array of FileDetails object. Each fileDetails object represents one file that is currently being shared.
 	private ArrayList<FileDetails> fileDetails;
 
@@ -30,13 +31,15 @@ public class RespList {
 	 */
 	@Override
 	public String toString() {
-		String fileDetailsString = "";
+		String fileDetailsString = "<RESP LIST " + Integer.toString(fileDetails.size()) + ">\n";
+        Integer i = 1;
 		for(Iterator<FileDetails> ite = fileDetails.iterator();ite.hasNext();)
 		{
 			FileDetails file = ite.next();
-			fileDetailsString = fileDetailsString + " " + file.toString();
+			fileDetailsString = fileDetailsString + "<" + i.toString() + " " + file.toString() + ">\n";
+            i++;
 		}
-		return "RespList" + fileDetailsString + "";
+		return fileDetailsString + RESP_END;
 	}
 	
 	/*

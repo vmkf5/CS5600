@@ -36,10 +36,11 @@ class RespUpdateTracker {
 	/*
 	 * Description: A server invoked function to obtain the string message of the response generated
 	 * Verion: 0.1
+	 * TODO: add filename to the update tracker response
 	 */
 	@Override
 	public String toString() {
-		return "updatetracker " + response;
+		return "<updatetracker " + response + ">\n";
 	}
 
 	/*
