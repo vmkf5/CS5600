@@ -1,4 +1,4 @@
-package com.Business.models;
+package server.com.Business.models;
 
 /*
  * author: Venkata Prashant
@@ -38,7 +38,7 @@ public class FileDetails {
 	 */
 	@Override
 	public String toString() {
-		return "" + fileName + ":" + fileSize  + ":" + checkSum + "";
+		return "" + fileName + "\t" + fileSize  + "\t" + checkSum + "";
 	}
 	
 	/*
@@ -49,13 +49,22 @@ public class FileDetails {
 	{
 		if(message != null)
 		{
-			String[] messageSplit = message.split(":");
+			String[] messageSplit = message.split(" ");
 			this.fileName = messageSplit[0];
 			this.fileSize = messageSplit[1];
 			this.checkSum = messageSplit[2];
 			
 		}
 	}
+    public FileDetails(String filename, String filesize, String checksum)
+    {
+        if( filename != null && filesize != null && checksum != null )
+        {
+            this.fileName = filename;
+            this.fileSize = filesize;
+            this.checkSum = checksum;
+        }
+    }
 	
 	
 }

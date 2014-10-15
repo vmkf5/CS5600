@@ -1,6 +1,6 @@
-package com.Business.models;
+package server.com.Business.models;
 
-import com.Business.exception.CreateTrackerException;
+import server.com.Business.exception.CreateTrackerException;
 
 /*
  * author: Venkata Prashant
@@ -14,7 +14,7 @@ import com.Business.exception.CreateTrackerException;
 public class createFileTrackerMessage {
 
 	private String filename;
-	private int fileBytes;
+	private Long fileBytes;
 	private String description;
 	private String checkSum;
 	private String ipAddress;
@@ -26,12 +26,8 @@ public class createFileTrackerMessage {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	public int getFileBytes() {
-		return fileBytes;
-	}
-	public void setFileBytes(int fileBytes) {
-		this.fileBytes = fileBytes;
-	}
+	public Long getFileBytes() {return fileBytes;}
+	public void setFileBytes(Long fileBytes) { this.fileBytes = fileBytes; }
 	public String getDescription() {
 		return description;
 	}
@@ -81,7 +77,7 @@ public class createFileTrackerMessage {
 				try
 				{
 					this.filename = messageSplit[1];
-					this.fileBytes = new Integer(messageSplit[2]);
+					this.fileBytes = new Long(messageSplit[2]);
 					this.description = messageSplit[3];
 					this.checkSum = messageSplit[4];
 					this.ipAddress = messageSplit[5];
@@ -103,7 +99,7 @@ public class createFileTrackerMessage {
 		}
 	}
 
-    public createFileTrackerMessage(String filename, Integer size, String desc, String md5, String ip, Integer port) throws CreateTrackerException
+    public createFileTrackerMessage(String filename, Long size, String desc, String md5, String ip, Integer port) throws CreateTrackerException
     {
         //TODO: add error handling
         this.filename     = filename;

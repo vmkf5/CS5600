@@ -1,7 +1,6 @@
-package com.Business.models;
+package server.com.Business.models;
 
 import com.Business.exception.UpdateTrackerException;
-import com.sun.deploy.net.UpdateTracker;
 
 /*
  * author: Venkata Prashant
