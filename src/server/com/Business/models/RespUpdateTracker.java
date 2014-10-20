@@ -9,9 +9,19 @@ package com.Business.models;
  * 
  * Version: 0.1
  */
-class RespUpdateTracker {
+public class RespUpdateTracker {
 
 	private String response;
+	private String fileName;
+	
+	
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
 
 	public String getResponse() {
 		return response;
@@ -34,15 +44,13 @@ class RespUpdateTracker {
 	}
 	
 	/*
-	 * Description: A server invoked function to obtain the string message of the response generated
+	 * Description: A server invoked function to obstain the string message of the response generated
 	 * Verion: 0.1
-	 * TODO: add filename to the update tracker response
 	 */
 	@Override
 	public String toString() {
-		return "<updatetracker " + response + ">\n";
+		return "<updatetracker " + fileName + "" + response + ">\n";
 	}
-
 	/*
 	 * Description: A peer invoked function to initialize the object from the received message.
 	 */
@@ -51,11 +59,17 @@ class RespUpdateTracker {
 		try
 		{
 			String messageSplit[] = message.split(" ");
-			this.response = messageSplit[1];
+			this.fileName = messageSplit[1];
+			this.response = messageSplit[2];
 		}
 		catch(Exception e)
 		{
 			this.response = "ferr";
 		}
+	}
+	
+	public RespUpdateTracker()
+	{
+		
 	}
 }
