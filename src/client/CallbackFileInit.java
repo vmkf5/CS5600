@@ -8,7 +8,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Created by john on 10/14/14.
+ * Created by Levi Malott on 10/14/14.
  */
 public class CallbackFileInit implements Runnable
 {

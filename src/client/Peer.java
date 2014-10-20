@@ -25,7 +25,9 @@ public class Peer
     private ArrayList<FileTracker> current_downloads;
     private InetAddress my_ip;
     private static String REQ_LIST = "<REQ LIST>\n";
+    private static Integer MAX_SEGMENT_SIZE = 1024;
     private RespList tracker_list;
+    private FileSenderManager fsManager;
 
     private Socket socket;
     private PrintWriter out;
@@ -33,6 +35,10 @@ public class Peer
     private Response response;
     private ArrayList<String> message = new ArrayList<String>();
 
+    /**
+     * Constructor
+     * @param filename name of the configuration file
+     */
     public Peer(String filename)
     {
         init();
@@ -41,7 +47,10 @@ public class Peer
         initSharedFiles();
     }
 
-    public void init()
+    /**
+     * Initializes the class attribute to know values
+     */
+    private void init()
     {
         server_port  = null;
         server_ip    = null;
@@ -61,6 +70,10 @@ public class Peer
         }
     }
 
+    /**
+     * Reads a configuration file at 'filename' and initializes corresponding attributes.
+     * @param filename
+     */
     public void readConfig(String filename)
     {
         Properties prop = new Properties();
@@ -94,7 +107,11 @@ public class Peer
         }
     }
 
-    public void initSharedFiles()
+    /**
+     * Reads the shared directory, creates the MD5 hash for every file, and sends create tracker
+     * messages to the server for each file shared.
+     */
+    private void initSharedFiles()
     {
         File f = new File(this.share_dir);
         String[] files = f.list();
@@ -106,12 +123,21 @@ public class Peer
         }
     }
 
-    public synchronized void initFile(String filename, SharedFileDetails info)
+    /**
+     * Updates the shared file records and sends a create tracker to the server
+     * @param filename
+     * @param info
+     */
+    private synchronized void initFile(String filename, SharedFileDetails info)
     {
         shared_files.put(filename, info);
         sendCreateTracker(info);
     }
 
+    /**
+     * Connects to the server located at the IP address and port given in the configuration file.
+     * @return
+     */
     public String connectToServer()
     {
         try
@@ -133,6 +159,31 @@ public class Peer
         return "";
     }
 
+    /**
+     * Starts the file sending manager as a background task to accept incoming queries and
+     * transmit file segments.
+     */
+    public void startFileSenderManager()
+    {
+        fsManager = new FileSenderManager(share_dir, my_port);
+        Thread t = new Thread(fsManager);
+        t.start();
+    }
+
+    /**
+     * Thread-safe getter for obtaining the shared directory name/path
+     * @return
+     */
+    public synchronized String getSharedDir()
+    {
+        return this.share_dir;
+    }
+
+    /**
+     * Sends a create tracker to the server with the details provided in info
+     * @param info attributes of the file
+     * @return
+     */
     public String sendCreateTracker(SharedFileDetails info)
     {
         createFileTrackerMessage msg = null;
@@ -171,6 +222,12 @@ public class Peer
         }
         return "";
     }
+
+    /**
+     * Requests a specific file tracker from the server. If successful, file download begins immediately
+     * @param filename name of the desired file
+     * @return
+     */
     public String getFileTracker(String filename)
     {
         String msg = "<GET " + filename + ".track>\n";
@@ -188,11 +245,15 @@ public class Peer
 
         //compare the received md5 with the computed for validity
         md5_recvd = getMd5(md5_recvd);
+        //To compute the MD5 hash, the header and tail of the message are ignored
+        //then put all the data into one string and compute the hash
         String content =  message.subList(1,message.size()-1).toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n");
         content = getMd5(content);
         if( content.equals(md5_recvd))
         {
-            current_downloads.add(new FileTracker(message));
+            FileTracker tracker = new FileTracker(message);
+            current_downloads.add(tracker);
+            this.downloadFile(tracker);
         }
         else {
             System.out.println("MD5 values for response to " + msg + "do not match.");
@@ -201,17 +262,44 @@ public class Peer
         message.clear();
         return "";
     }
+
+    /**
+     * Attempts to download the file designated by the provided tracker
+     * @param tracker tracker received from server
+     */
+    public void downloadFile(FileTracker tracker)
+    {
+        Thread t = new Thread(new FileDownloader(tracker, this.segment_size, this));
+        t.start();
+    }
+
+    /**
+     * Removes a file from the current download queue. (Thread safe)
+     * @param tracker
+     */
+    public synchronized void removeFileFromQueue(FileTracker tracker)
+    {
+        current_downloads.remove(tracker);
+    }
+
+   /**
+    * Updates the Peer's shared file record to reflect a change in status such as more bytes being downloaded.
+    * Thread safe.
+    * @param file_info  the updated information of respective file
+     */
+    public synchronized void updateSharedFileDetails(SharedFileDetails file_info)
+    {
+        String filename = file_info.getFilename();
+        shared_files.put(filename, file_info);
+    }
+
     public String sendUpdateTracker(updateTracker tracker)
     {
         return "";
     }
-    public String getSegment(String ip, String filename, String md5, Integer segment)
-    {
 
-        return "";
-    }
     /*
-    Call after sending a message to the server. Stores all incoming messages into the String ArrayList message.
+    Call after sending a message to the server. Stores all incoming messages into queue.
      */
     public void recvFromServer()
     {
@@ -226,6 +314,10 @@ public class Peer
             System.exit(1);
         }
     }
+
+    /**
+     * Sends a LIST command to the connected server and prints the results.
+     */
     public void getTrackerList()
     {
 
@@ -251,7 +343,7 @@ public class Peer
     /*
     Obtained from http://javarevisited.blogspot.com/2013/03/generate-md5-hash-in-java-string-byte-array-example-tutorial.html
     */
-    private String getMd5(String msg) {
+    public String getMd5(String msg) {
         String digest = null;
         MessageDigest md = null;
         try {
@@ -271,5 +363,20 @@ public class Peer
             e.printStackTrace();
         }
         return digest;
+    }
+
+    public void close()
+    {
+        try {
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        out.close();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
