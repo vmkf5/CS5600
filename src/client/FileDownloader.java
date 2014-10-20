@@ -111,6 +111,6 @@ public class FileDownloader implements Runnable
         } catch (IOException e) {
             e.printStackTrace();
         }
-        callback.removeFileFromQueue(tracker);
+        callback.downloadComplete(tracker);
     }
 }

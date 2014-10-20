@@ -1,10 +1,10 @@
-package com.Business.models;
+package server.com.Business.models;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import com.Business.exception.CreateTrackerException;
-import com.Business.exception.RespGetFileException;
+import server.com.Business.exception.CreateTrackerException;
+import server.com.Business.exception.RespGetFileException;
 
 /*
  * author: Venkata Prashant

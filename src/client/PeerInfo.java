@@ -112,4 +112,9 @@ public class PeerInfo
         time  = Long.parseLong(tokens[4]);
 
     }
+
+    public String toString()
+    {
+        return ip.toString() + ":" + port + ":" + start + ":" + end + ":" + time;
+    }
 }
