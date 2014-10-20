@@ -71,27 +71,24 @@ public class FileTracker
                         break;
                     case NAME_IDX:
                         tokens = msg.split(":");
-                        details.filename = tokens[1];
+                        details.filename = tokens[1].trim();
                         break;
                     case SIZE_IDX:
                         tokens = msg.split(":");
-                        details.filesize = Long.parseLong(tokens[1]);
+                        details.filesize = Long.parseLong(tokens[1].trim());
                         break;
                     case DESC_IDX:
                         tokens = msg.split(":");
-                        details.description = tokens[1];
+                        details.description = tokens[1].trim();
                         break;
                     case MD5_IDX:
                         tokens = msg.split(":");
-                        details.md5 = tokens[1];
+                        details.md5 = tokens[1].trim();
                         break;
                     default:
                         if( i != last )
                         {
-                            tokens = msg.split(" ");
-                            String filename = tokens[1];
-                            String filesize = tokens[2];
-                            String checksum = tokens[3].substring(0, tokens[3].length() - 1);
+                            peers.add(new PeerInfo(msg));
                         }
                 }
                 i++;
