@@ -60,7 +60,7 @@ public class createFileTrackerMessage {
 	@Override
 	public String toString() {
 		return "<createtracker " + filename + " " + fileBytes + " " + description
-				+ " " + checkSum + " " + ipAddress + " " + port + ">\n" ;
+				+ " " + checkSum + " " + ipAddress + " " + port + ">" ;
 	}
 
 	/*

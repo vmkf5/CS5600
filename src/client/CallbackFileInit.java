@@ -8,34 +8,46 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Created by john on 10/14/14.
+ * Created by Levi Malott on 10/14/14.
  */
 public class CallbackFileInit implements Runnable
 {
     private String filename;
     private Peer callback;
     private String desc;
+    private String share_dir;
 
-    CallbackFileInit(String filename, String desc, Peer callback)
+    CallbackFileInit(String share_dir, String filename, String desc, Peer callback)
     {
         this.filename = filename;
         this.callback = callback;
         this.desc     = desc;
+        this.share_dir = share_dir;
     }
+
+    private static String combine(String path1, String path2)
+    {
+        File f1 = new File(path1);
+        File f2 = new File(f1, path2);
+        return f2.getPath();
+    }
+
+
     @Override
     public void run()
     {
         SharedFileDetails info = new SharedFileDetails();
-        File f = new File(filename);
+        File f = new File(combine(share_dir, filename));
         info.filesize = f.length();
         info.filename = filename;
         info.end = info.filesize-1;
         info.start = Long.valueOf(0);
-        info.description = "";
+        info.description = "desc";
+
 
         try
         {
-            FileInputStream in = new FileInputStream(filename);
+            FileInputStream in = new FileInputStream(f);
             MessageDigest md5 = MessageDigest.getInstance("MD5");
             DigestInputStream din = new DigestInputStream(in, md5);
             while (din.read() != -1);

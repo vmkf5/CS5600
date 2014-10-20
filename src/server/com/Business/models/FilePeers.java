@@ -1,4 +1,4 @@
-package com.Business.models;
+package server.com.Business.models;
 
 import java.util.Date;
 
