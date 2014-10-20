@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 /**
  * Represents the file trackers the server uses to hold sharing information.
- *
+ * TODO: make sure to ignore lines starting with #
  * Created by Levi Malott on 10/14/14.
  */
 public class FileTracker
