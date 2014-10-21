@@ -50,7 +50,6 @@ public class FileDownloader implements Runnable
 
         //byte[] buf = new byte[segment_size];
         byte[] buf;
-        buf = new byte[details.getFilesize().intValue()];
 
         //Create a new file to save the downloaded contents
         try {
@@ -63,7 +62,8 @@ public class FileDownloader implements Runnable
         Long filesize      = details.getFilesize();
         Long current_start = Long.valueOf(0);
         Long current_end   = (segment_size-1 > filesize) ? filesize : Long.valueOf(segment_size-1) ;        //Iterate over peers to request content from, if it fails it goes to the next client
-        Integer len           = segment_size.intValue();
+        Integer len           = (int) filesize.intValue();
+        buf = new byte[len];
         updated_details.setStart(current_start);
         updated_details.setEnd(filesize);
 
@@ -80,7 +80,7 @@ public class FileDownloader implements Runnable
                 }
                 if (socket != null)
                 {
-                    peer_out.write("<GET " + filename);
+                    peer_out.println("<GET " + filename + " " + filesize + ">\n");
                     try {
                         peer_in.read(buf,0,len);
                         file_out.write(buf,0,len);

@@ -42,6 +42,7 @@ public class FileSender implements Runnable
         int read = 0;
         int len = 0;
         String path = null;
+        Integer filesize;
 
         try
         {
@@ -52,18 +53,23 @@ public class FileSender implements Runnable
             String[] tokens = line.split(" ");
             //Separate the received command into corresponding fields according to protocol
             filename = tokens[1];
-            start    = Long.parseLong(tokens[2]);
-            end      = Long.parseLong(tokens[3].substring(0,tokens[3].length()-1));
-            len      = (int)(end - start);
-            buf = new byte[len];
+            filesize = Integer.parseInt(tokens[2].substring(0,tokens[2].length()-1));
+
+
+            //start    = Long.parseLong(tokens[2]);
+            //end      = Long.parseLong(tokens[3].substring(0,tokens[3].length()-1));
+            //len      = (int)(end - start);
+            //buf = new byte[len];
+            buf = new byte[filesize];
 
             //Read the selected chunk from the file stream and push to the peer
             path = combine(share_dir, filename);
             File file = new File(path);
             fis = new FileInputStream(file);
             file_in = new BufferedInputStream(fis);
-            read = file_in.read(buf, start.intValue(), len);
-            peer_out.write(buf, 0, len);
+            read = file_in.read(buf, 0, filesize);
+            peer_out.write(buf, 0, filesize);
+            peer_out.flush();;
 
         } catch (IOException e) {
             e.printStackTrace();

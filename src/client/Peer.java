@@ -41,7 +41,7 @@ public class Peer
         init();
         readConfig(filename);
         connectToServer();
-        initSharedFiles();
+        //initSharedFiles();
     }
 
     /**
