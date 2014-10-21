@@ -58,10 +58,10 @@ public class FileDownloader implements Runnable
             e.printStackTrace();
         }
 
-        Long current_start = Long.valueOf(0);
-        Long current_end   = Long.valueOf(segment_size-1);        //Iterate over peers to request content from, if it fails it goes to the next client
-        Integer len           = segment_size.intValue();
         Long filesize      = details.getFilesize();
+        Long current_start = Long.valueOf(0);
+        Long current_end   = (segment_size-1 > filesize) ? filesize : Long.valueOf(segment_size-1) ;        //Iterate over peers to request content from, if it fails it goes to the next client
+        Integer len           = segment_size.intValue();
         updated_details.setStart(current_start);
         updated_details.setEnd(current_start);
         while(current_start < filesize)
@@ -93,6 +93,13 @@ public class FileDownloader implements Runnable
                         current_end = details.getFilesize();
                     }
 
+                    try {
+                        socket.close();
+                        peer_out.close();
+                        peer_in.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
                 }
 
@@ -100,9 +107,7 @@ public class FileDownloader implements Runnable
            // callback.updateSharedFileDetails(updated_details);
         }
         try {
-            socket.close();
-            peer_out.close();
-            peer_in.close();
+
             file_out.flush();
             file_out.close();
         } catch (IOException e) {
