@@ -92,20 +92,17 @@ public class FileDownloader implements Runnable
                     if (current_end >= details.getFilesize()) {
                         current_end = details.getFilesize();
                     }
-                    try {
-                        socket.close();
-                        peer_out.close();
-                        peer_in.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    callback.updateSharedFileDetails(updated_details);
+
 
                 }
 
             }
+           // callback.updateSharedFileDetails(updated_details);
         }
         try {
+            socket.close();
+            peer_out.close();
+            peer_in.close();
             file_out.flush();
             file_out.close();
         } catch (IOException e) {

@@ -41,7 +41,7 @@ public class Peer
         init();
         readConfig(filename);
         connectToServer();
-        //initSharedFiles();
+        initSharedFiles();
     }
 
     /**
@@ -62,6 +62,7 @@ public class Peer
         tracker_list = null;
         try {
             my_ip = this.getLocalHostLANAddress().toString();
+            my_ip = my_ip.substring(1);
             System.out.println("IP: " + my_ip);
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -568,8 +569,13 @@ public class Peer
     {
         Peer peer = new Peer("/home/levi/IdeaProjects/CS5600/src/data/config.properties");
         peer.startFileSenderManager();
+        while(true)
+        {
+            continue;
+        }
         //peer.close();
         //peer.getTrackerList();
-        peer.getFileTracker("qute.jpg");
+        //peer.getFileTracker("qute.jpg");
+
     }
 }
