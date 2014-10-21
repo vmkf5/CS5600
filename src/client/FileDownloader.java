@@ -64,8 +64,7 @@ public class FileDownloader implements Runnable
         Integer len           = segment_size.intValue();
         updated_details.setStart(current_start);
         updated_details.setEnd(current_start);
-        while(current_start < filesize)
-        {
+
             for(Iterator<PeerInfo> it = all_peers.iterator(); it.hasNext(); )
             {
                 peer = it.next();
@@ -79,33 +78,35 @@ public class FileDownloader implements Runnable
                 }
                 if (socket != null)
                 {
-                    peer_out.write("<GET " + filename + " " + current_start.toString() + " " + current_end.toString() + ">\n");
-                    try {
-                        peer_in.read(buf, 0, len);
-                        file_out.write(buf, 0, len);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    updated_details.setEnd(current_end);
-                    current_start += segment_size;
-                    current_end += segment_size;
-                    if (current_end >= details.getFilesize()) {
-                        current_end = details.getFilesize();
-                    }
+                    while(current_start < filesize)
+                    {
+                        peer_out.write("<GET " + filename + " " + current_start.toString() + " " + current_end.toString() + ">\n");
+                        try {
+                            peer_in.read(buf, 0, len);
+                            file_out.write(buf, 0, len);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        updated_details.setEnd(current_end);
+                        current_start += segment_size;
+                        current_end += segment_size;
+                        if (current_end >= details.getFilesize()) {
+                            current_end = details.getFilesize();
+                        }
 
-                    try {
+
+                    }
+                    try
+                    {
                         socket.close();
                         peer_out.close();
                         peer_in.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
                 }
-
             }
            // callback.updateSharedFileDetails(updated_details);
-        }
         try {
 
             file_out.flush();
