@@ -48,7 +48,9 @@ public class FileDownloader implements Runnable
         SharedFileDetails updated_details = new SharedFileDetails(details);
         String filename = details.getFilename();
 
-        byte[] buf = new byte[segment_size];
+        //byte[] buf = new byte[segment_size];
+        byte[] buf;
+        buf = new byte[details.getFilesize().intValue()];
 
         //Create a new file to save the downloaded contents
         try {
@@ -63,7 +65,7 @@ public class FileDownloader implements Runnable
         Long current_end   = (segment_size-1 > filesize) ? filesize : Long.valueOf(segment_size-1) ;        //Iterate over peers to request content from, if it fails it goes to the next client
         Integer len           = segment_size.intValue();
         updated_details.setStart(current_start);
-        updated_details.setEnd(current_start);
+        updated_details.setEnd(filesize);
 
             for(Iterator<PeerInfo> it = all_peers.iterator(); it.hasNext(); )
             {
@@ -78,7 +80,14 @@ public class FileDownloader implements Runnable
                 }
                 if (socket != null)
                 {
-                    while(current_start < filesize)
+                    peer_out.write("<GET " + filename);
+                    try {
+                        peer_in.read(buf,0,len);
+                        file_out.write(buf,0,len);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                   /* while(current_start < filesize)
                     {
                         peer_out.write("<GET " + filename + " " + current_start.toString() + " " + current_end.toString() + ">\n");
                         try {
@@ -95,7 +104,7 @@ public class FileDownloader implements Runnable
                         }
 
 
-                    }
+                    }*/
                     try
                     {
                         socket.close();
@@ -104,6 +113,7 @@ public class FileDownloader implements Runnable
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    break;
                 }
             }
            // callback.updateSharedFileDetails(updated_details);
