@@ -1,7 +1,11 @@
 package client;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Represents the file trackers the server uses to hold sharing information.
@@ -93,6 +97,43 @@ public class FileTracker
                 }
                 i++;
             }
+        }
+    }
+
+    public FileTracker(File file)
+    {
+        List<String> lines;
+        try {
+            lines = new Files.readAllLines(file.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int i = 0;
+        String[] tokens;
+        for(String line : lines)
+        {
+            switch(i)
+                {
+                    case NAME_IDX:
+                        tokens = line.split(":");
+                        details.filename = tokens[1].trim();
+                        break;
+                    case SIZE_IDX:
+                        tokens = line.split(":");
+                        details.filesize = Long.parseLong(tokens[1].trim());
+                        break;
+                    case DESC_IDX:
+                        tokens = line.split(":");
+                        details.description = tokens[1].trim();
+                        break;
+                    case MD5_IDX:
+                        tokens = line.split(":");
+                        details.md5 = tokens[1].trim();
+                        break;
+                    default:
+                        peers.add(new PeerInfo(line));
+                }
+            i++;
         }
     }
 }

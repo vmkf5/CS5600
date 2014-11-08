@@ -12,10 +12,8 @@ public class FileSender implements Runnable
 {
     private Socket socket;
     private static final Integer MAX_SEGMENT_SIZE = 1024;
-    private FileInputStream fis;
     private BufferedReader peer_in;
     private BufferedOutputStream peer_out;
-    private BufferedInputStream file_in;
     private String share_dir;
 
     public FileSender(Socket socket, String share_dir)
@@ -43,6 +41,7 @@ public class FileSender implements Runnable
         int len = 0;
         String path = null;
         Integer filesize;
+        RandomAccessFile file;
 
         try
         {
@@ -50,26 +49,24 @@ public class FileSender implements Runnable
             peer_out = new BufferedOutputStream(socket.getOutputStream());
 
             line = peer_in.readLine();
+            System.out.println("FileSender Received: " + line);
             String[] tokens = line.split(" ");
             //Separate the received command into corresponding fields according to protocol
             filename = tokens[1];
-            filesize = Integer.parseInt(tokens[2].substring(0,tokens[2].length()-1));
+            System.out.println("FileSender transmitting " + filename + "...");
 
-
-            //start    = Long.parseLong(tokens[2]);
-            //end      = Long.parseLong(tokens[3].substring(0,tokens[3].length()-1));
-            //len      = (int)(end - start);
-            //buf = new byte[len];
-            buf = new byte[filesize];
+            start    = Long.parseLong(tokens[2]);
+            end      = Long.parseLong(tokens[3].substring(0,tokens[3].length()-1));
+            len      = (int)(end - start);
+            buf = new byte[len];
 
             //Read the selected chunk from the file stream and push to the peer
             path = combine(share_dir, filename);
-            File file = new File(path);
-            fis = new FileInputStream(file);
-            file_in = new BufferedInputStream(fis);
-            read = file_in.read(buf, 0, filesize);
-            peer_out.write(buf, 0, filesize);
-            peer_out.flush();;
+            file = new RandomAccessFile(path, "r");
+            file.seek(start);
+            read = file.read(buf, 0, len);
+            peer_out.write(buf, 0, read);
+            peer_out.flush();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,8 +77,7 @@ public class FileSender implements Runnable
         {
             peer_in.close();
             peer_out.close();
-            fis.close();
-            file_in.close();
+            file.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

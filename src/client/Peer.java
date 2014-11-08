@@ -41,7 +41,7 @@ public class Peer
         init();
         readConfig(filename);
         connectToServer();
-        //initSharedFiles();
+        initSharedFiles();
     }
 
     /**
@@ -147,6 +147,7 @@ public class Peer
         String[] files = f.list();
         for (String filename : files)
         {
+            //String[] tokens = fileName.split("\\.(?=[^\\.]+$)");
             if( !"track".equals(getLastExtension(filename)))
             {
                 CallbackFileInit d = new CallbackFileInit(share_dir, filename, " ", this);
@@ -313,7 +314,7 @@ public class Peer
             System.exit(1);
         }
 
-        System.out.println(resp);
+        System.out.println("Recieved: " + resp);
 
         if(resp.equals("<createtracker succ>"))
         {
@@ -392,10 +393,23 @@ public class Peer
     /**
      * Attempts to download the file designated by the provided tracker
      * @param tracker tracker received from server
+     *
      */
     public void downloadFile(FileTracker tracker)
     {
-        Thread t = new Thread(new FileDownloader(tracker, this.segment_size, this));
+        Thread t = new Thread(new FileDownloader(tracker, this.segment_size, (long) 0, this));
+        t.start();
+    }
+
+    /**
+     * Attempts to download the file from the designated tracker starting from the byte
+     * specified by start
+     * @param tracker
+     * @param start
+     */
+    public void downloadFileFrom(FileTracker tracker, Long start)
+    {
+        Thread t = new Thread(new FileDownloader(tracker, this.segment_size, start, this));
         t.start();
     }
 
@@ -412,6 +426,7 @@ public class Peer
     {
        removeFileFromQueue(tracker);
        deleteTrackerFromCache(tracker);
+        //TODO: Compare the MD5 of the downloaded file and the reported MD5
        System.out.println("Successfully downloaded " + tracker.getDetails().getFilename());
     }
 
@@ -424,10 +439,17 @@ public class Peer
     {
         String filename = file_info.getFilename();
         shared_files.put(filename, file_info);
+        sendUpdateTracker(file_info);
     }
 
-    public String sendUpdateTracker(updateTracker tracker)
+    public synchronized String sendUpdateTracker(SharedFileDetails tracker)
     {
+        String filename = tracker.getFilename();
+        String msg = "<updatetracker " + tracker.getFilename() + " " + tracker.getStart() + " " + tracker.getEnd() + " " + my_ip + " " + my_port + ">";
+        sendToServer(msg);
+        System.out.println("Sent: " + msg);
+        recvFromServer("updatetracker");
+        System.out.println("Received: " + message.get(0));
         return "";
     }
 
@@ -452,7 +474,7 @@ public class Peer
     /**
      * Sends a LIST command to the connected server and prints the results.
      */
-    public void getTrackerList()
+    public synchronized void getTrackerList()
     {
         message.clear();
         if( socket == null )
@@ -567,14 +589,16 @@ public class Peer
 
     public static void main(String[] args)
     {
+        //TODO: Get description of files from UI, when a user selects a file to share
         Peer peer = new Peer("/home/levi/IdeaProjects/CS5600/src/data/config.properties");
-        peer.startFileSenderManager();
+        //peer.startFileSenderManager();
+
+        peer.getTrackerList();
         while(true)
         {
             continue;
         }
         //peer.close();
-        //peer.getTrackerList();
         //peer.getFileTracker("qute.jpg");
 
     }
