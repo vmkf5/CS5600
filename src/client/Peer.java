@@ -591,15 +591,13 @@ public class Peer
     {
         //TODO: Get description of files from UI, when a user selects a file to share
         Peer peer = new Peer("/home/levi/IdeaProjects/CS5600/src/data/config.properties");
-        //peer.startFileSenderManager();
-
+        peer.startFileSenderManager();
         peer.getTrackerList();
+        //peer.getFileTracker("qute.jpg");
         while(true)
         {
             continue;
         }
-        //peer.close();
-        //peer.getFileTracker("qute.jpg");
 
     }
 }

@@ -40,7 +40,6 @@ public class FileSender implements Runnable
         int read = 0;
         int len = 0;
         String path = null;
-        Integer filesize;
         RandomAccessFile file;
 
         try
@@ -67,18 +66,9 @@ public class FileSender implements Runnable
             read = file.read(buf, 0, len);
             peer_out.write(buf, 0, read);
             peer_out.flush();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        try
-        {
             peer_in.close();
             peer_out.close();
-            file.close();
-        } catch (IOException e) {
+            file.close();        } catch (IOException e) {
             e.printStackTrace();
         }
 

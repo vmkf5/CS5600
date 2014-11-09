@@ -61,7 +61,7 @@ public class FileDownloader implements Runnable
         Long filesize      = details.getFilesize();
         Long current_start = this.start;
         Long current_end   = (this.segment_size-1 > filesize) ? filesize : Long.valueOf(this.segment_size-1) ;        //Iterate over peers to request content from, if it fails it goes to the next client
-        Integer len           = (int) current_end - current_start;
+        Integer len           = (int) (current_end - current_start);
         buffer = new byte[this.segment_size];
         int read = 0;
         boolean got_segment = false;

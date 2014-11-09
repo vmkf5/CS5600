@@ -102,9 +102,9 @@ public class FileTracker
 
     public FileTracker(File file)
     {
-        List<String> lines;
+        List<String> lines = new ArrayList<String>();
         try {
-            lines = new Files.readAllLines(file.toPath());
+            lines = Files.readAllLines(file.toPath());
         } catch (IOException e) {
             e.printStackTrace();
         }
