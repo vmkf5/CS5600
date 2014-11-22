@@ -1,6 +1,7 @@
 package client;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.ServerSocket;
 
 /**
@@ -26,6 +27,9 @@ public class FileSenderManager implements Runnable
     {
         try {
             server = new ServerSocket(port);
+        } catch(BindException e)
+        {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,6 +43,9 @@ public class FileSenderManager implements Runnable
                 Thread t = new Thread(sender);
                 t.start();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e)
+            {
                 e.printStackTrace();
             }
         }

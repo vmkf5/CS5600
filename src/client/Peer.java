@@ -62,6 +62,7 @@ public class Peer
         tracker_list = null;
         try {
             my_ip = this.getLocalHostLANAddress().toString();
+            my_ip = my_ip.substring(1);
             System.out.println("IP: " + my_ip);
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -87,6 +88,7 @@ public class Peer
             this.refresh_rate= Integer.parseInt(prop.getProperty("refresh_rate", "60"));
             this.share_dir   = prop.getProperty("share_dir", "shares");
             this.segment_size= Integer.parseInt(prop.getProperty("segment_size"));
+            System.out.println(server_port.toString());
             //TODO: Add checks for valid configuration entries, close on errors
         } catch (FileNotFoundException e) {
             System.out.println("Could not find the configuration file at " + filename);
@@ -145,7 +147,8 @@ public class Peer
         String[] files = f.list();
         for (String filename : files)
         {
-            if( !getLastExtension(filename).equals("track") )
+            //String[] tokens = fileName.split("\\.(?=[^\\.]+$)");
+            if( !"track".equals(getLastExtension(filename)))
             {
                 CallbackFileInit d = new CallbackFileInit(share_dir, filename, " ", this);
                 Thread t = new Thread(d);
@@ -299,35 +302,37 @@ public class Peer
         } catch (CreateTrackerException e) {
             e.printStackTrace();
         }
-        out.println(msg.toString());
-        System.out.println("Sent message: " + msg.toString());
+
         try {
+            out.println(msg.toString());
+            System.out.println("Sent message: " + msg.toString());
             resp = in.readLine();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        response = Response.fromString(resp);
-        if(response == null)
-        {
-            System.out.println("Unknown response from server from: " + msg.toString());
+            System.out.println("Socket unexpectedly closed.");
+            this.close();
             System.exit(1);
         }
 
-        System.out.println(resp);
+        System.out.println("Recieved: " + resp);
 
-        switch(response)
+        if(resp.equals("<createtracker succ>"))
         {
-            case CT_SUCCESS:
-                System.out.println("Successfully created tracker for " + info.filename);
-                break;
-            case CT_FAIL:
-                System.out.println("Server failed to create tracker for " + info.filename);
-                break;
-            case CT_EXISTS:
-                System.out.println("tracker for " + info.filename + "already exists" );
-                break;
-            default: break;
+            System.out.println("Successfully created tracker for " + info.filename);
         }
+        else if ( resp.equals("<createtracker fail>"))
+        {
+            System.out.println("Server failed to create tracker for " + info.filename);
+        }
+        else if( resp.equals("<createtracker ferr>"))
+        {
+            System.out.println("tracker for " + info.filename + " already exists" );
+        }
+        else
+        {
+            System.out.println("Shouldn't hit this case");
+        }
+
         return "";
     }
 
@@ -344,9 +349,10 @@ public class Peer
      */
     public String getFileTracker(String filename)
     {
+        message.clear();
         String msg = "<GET " + filename + ".track>";
         sendToServer(msg);
-        recvFromServer();
+        recvFromServer("GET END");
         if( message.size() == 0 )
         {
            System.out.println("Server did not response to " + msg);
@@ -354,16 +360,18 @@ public class Peer
         }
 
         //obtain the MD5 from the server response
+        for(String e : message)
+        {
+            System.out.println(e);
+        }
         String md5_recvd = message.get(message.size()-1).split(" ")[3];
         //remove the pesky '>' character
         md5_recvd = md5_recvd.substring(0, md5_recvd.length()-1);
 
-        //compare the received md5 with the computed for validity
-        md5_recvd = getMd5(md5_recvd);
         //To compute the MD5 hash, the header and tail of the message are ignored
         //then put all the data into one string and compute the hash
-        String content =  message.subList(1,message.size()-1).toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n");
-        content = content.substring(1,content.length()-1);
+        String content =  message.subList(1,message.size()-1).toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n") + "\n";
+        System.out.println(content);
         content = getMd5(content);
         if( content.equals(md5_recvd))
         {
@@ -385,10 +393,23 @@ public class Peer
     /**
      * Attempts to download the file designated by the provided tracker
      * @param tracker tracker received from server
+     *
      */
     public void downloadFile(FileTracker tracker)
     {
-        Thread t = new Thread(new FileDownloader(tracker, this.segment_size, this));
+        Thread t = new Thread(new FileDownloader(tracker, this.segment_size, (long) 0, this));
+        t.start();
+    }
+
+    /**
+     * Attempts to download the file from the designated tracker starting from the byte
+     * specified by start
+     * @param tracker
+     * @param start
+     */
+    public void downloadFileFrom(FileTracker tracker, Long start)
+    {
+        Thread t = new Thread(new FileDownloader(tracker, this.segment_size, start, this));
         t.start();
     }
 
@@ -405,6 +426,7 @@ public class Peer
     {
        removeFileFromQueue(tracker);
        deleteTrackerFromCache(tracker);
+        //TODO: Compare the MD5 of the downloaded file and the reported MD5
        System.out.println("Successfully downloaded " + tracker.getDetails().getFilename());
     }
 
@@ -417,24 +439,32 @@ public class Peer
     {
         String filename = file_info.getFilename();
         shared_files.put(filename, file_info);
+        sendUpdateTracker(file_info);
     }
 
-    public String sendUpdateTracker(updateTracker tracker)
+    public synchronized String sendUpdateTracker(SharedFileDetails tracker)
     {
+        String filename = tracker.getFilename();
+        String msg = "<updatetracker " + tracker.getFilename() + " " + tracker.getStart() + " " + tracker.getEnd() + " " + my_ip + " " + my_port + ">";
+        sendToServer(msg);
+        System.out.println("Sent: " + msg);
+        recvFromServer("updatetracker");
+        System.out.println("Received: " + message.get(0));
         return "";
     }
 
     /*
     Call after sending a message to the server. Stores all incoming messages into queue.
      */
-    public void recvFromServer()
+    public void recvFromServer(String expected_end)
     {
         String resp = null;
         try {
-            while( (resp = in.readLine()) != null )
+            while( !(resp = in.readLine()).contains(expected_end) )
             {
                 message.add(resp);
             }
+            message.add(resp);
         } catch (IOException e) {
             System.out.println("Communication with server was interrupted. Exiting..");
             System.exit(1);
@@ -444,23 +474,23 @@ public class Peer
     /**
      * Sends a LIST command to the connected server and prints the results.
      */
-    public void getTrackerList()
+    public synchronized void getTrackerList()
     {
-
+        message.clear();
         if( socket == null )
         {
             System.out.println("Socket was unexpectedly closed. Exiting..");
             System.exit(1);
         }
+        System.out.println("Sent message: " + REQ_LIST);
 
         out.println(REQ_LIST);
-
+        recvFromServer("REP LIST END");
         if( message.size() == 0 )
         {
             System.out.println("Server did not respond to " + REQ_LIST);
             System.exit(1);
         }
-
         tracker_list = new RespList(message);
         tracker_list.print();
         //clear the message queue since we've processed them
@@ -490,6 +520,7 @@ public class Peer
             e.printStackTrace();
         }
         if(writer != null) {
+            writer.flush();
             writer.close();
         }
 
@@ -558,8 +589,17 @@ public class Peer
 
     public static void main(String[] args)
     {
+        //TODO: Get description of files from UI, when a user selects a file to share
         Peer peer = new Peer("/home/levi/IdeaProjects/CS5600/src/data/config.properties");
-        peer.startFileSenderManager();
-        peer.close();
+        //peer.startFileSenderManager();
+
+        peer.getTrackerList();
+        while(true)
+        {
+            continue;
+        }
+        //peer.close();
+        //peer.getFileTracker("qute.jpg");
+
     }
 }

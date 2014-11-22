@@ -115,6 +115,6 @@ public class PeerInfo
 
     public String toString()
     {
-        return ip.toString() + ":" + port + ":" + start + ":" + end + ":" + time;
+        return ip.toString().substring(1) + ":" + port + ":" + start + ":" + end + ":" + time;
     }
 }
