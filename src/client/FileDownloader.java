@@ -6,6 +6,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import server.com.File.Models.FileTracker;
+import server.com.File.Models.PeerInfo;
+import server.com.File.Models.SharedFileDetails;
+
 
 /**
  * Handles downloading file segments from a connected peer in its own thread.

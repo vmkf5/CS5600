@@ -38,7 +38,7 @@ public class FileDetails {
 	 */
 	@Override
 	public String toString() {
-		return "" + fileName + "\t" + fileSize  + "\t" + checkSum + "";
+		return "" + fileName + " " + fileSize  + " " + checkSum + "";
 	}
 	
 	/*
@@ -65,6 +65,12 @@ public class FileDetails {
             this.checkSum = checksum;
         }
     }
+    
+    public FileDetails()
+    {
+    	
+    }
 	
 	
 }
+

@@ -1,4 +1,4 @@
-package com.Business.exception;
+package server.com.Business.exception;
 
 /*
  * author: Venkata Prashant

@@ -1,6 +1,6 @@
 package server.com.Business.models;
 
-import com.Business.exception.UpdateTrackerException;
+import server.com.Business.exception.UpdateTrackerException;
 
 /*
  * author: Venkata Prashant
@@ -69,6 +69,7 @@ public class updateTracker {
 	{
 		if(message != null)
 		{
+			message.replaceAll(">", " ");
 			String[] messageSplit = message.split(" ");
 			if(messageSplit.length == 6)
 			{
@@ -97,21 +98,11 @@ public class updateTracker {
 			throw new UpdateTrackerException();
 		}
 	}
-    /* Description: Constructor for the peer side of operations to create an updateTracker from the necessary
-    information required to complete the action.
-    Version: 0.1
-
-     */
-    public updateTracker(String filename, Integer start, Integer end, String ip, Integer port) throws UpdateTrackerException
-    {
-        //TODO: add error handling
-        this.filename   = filename;
-        this.startBytes = start;
-        this.endBytes   = end;
-        this.ipAddress  = ip;
-        this.portNumber = port;
-    }
 	
+	public updateTracker()
+	{
+		
+	}
 	
 
 }

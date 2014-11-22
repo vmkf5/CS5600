@@ -7,6 +7,8 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import server.com.File.Models.SharedFileDetails;
+
 /**
  * Created by Levi Malott on 10/14/14.
  */
@@ -17,10 +19,10 @@ public class CallbackFileInit implements Runnable
     private String desc;
     private String share_dir;
 
-    CallbackFileInit(String share_dir, String filename, String desc, Peer callback)
+    public CallbackFileInit(String share_dir, String filename, String desc, Peer peer)
     {
         this.filename = filename;
-        this.callback = callback;
+        this.callback = peer;
         this.desc     = desc;
         this.share_dir = share_dir;
     }
@@ -40,8 +42,6 @@ public class CallbackFileInit implements Runnable
         File f = new File(combine(share_dir, filename));
         info.filesize = f.length();
         info.filename = filename;
-        info.end = info.filesize-1;
-        info.start = Long.valueOf(0);
         info.description = "desc";
 
 

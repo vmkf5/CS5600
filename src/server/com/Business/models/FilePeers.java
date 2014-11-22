@@ -3,7 +3,7 @@ package server.com.Business.models;
 import java.util.Date;
 
 
-import com.Business.exception.FilePeerException;
+import server.com.Business.exception.FilePeerException;
 
 /*
  * author: Venkata Prashant
@@ -18,8 +18,8 @@ public class FilePeers {
 	
 	private String ipAddress;
 	private int portNumber;
-	private int startByte;
-	private int endByte;
+	private long startByte;
+	private long endByte;
 	private Date timeStamp;
 	public String getIpAddress() {
 		return ipAddress;
@@ -33,16 +33,16 @@ public class FilePeers {
 	public void setPortNumber(int portNumber) {
 		this.portNumber = portNumber;
 	}
-	public int getStartByte() {
+	public long getStartByte() {
 		return startByte;
 	}
-	public void setStartByte(int startByte) {
+	public void setStartByte(long startByte) {
 		this.startByte = startByte;
 	}
-	public int getEndByte() {
+	public long getEndByte() {
 		return endByte;
 	}
-	public void setEndByte(int endByte) {
+	public void setEndByte(long endByte) {
 		this.endByte = endByte;
 	}
 	public Date getTimeStamp() {
@@ -58,7 +58,7 @@ public class FilePeers {
 	@Override
 	public String toString() {
 		return "" + ipAddress + ":" + portNumber + ":" + startByte + ":" + endByte + ":" 
-				+ timeStamp + "";
+				+ timeStamp.getTime() + "";
 	}
 	
 	/*
@@ -97,6 +97,10 @@ public class FilePeers {
 		}
 	}
 	
+	public FilePeers()
+	{
+		
+	}
 	
 	
 
