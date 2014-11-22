@@ -66,12 +66,13 @@ public class RespList {
         {
             System.out.println("Available Files");
             System.out.println("===============");
-            Integer i = 0;
+            Integer i = 1;
             FileDetails deets;
             for(Iterator<FileDetails> it = fileDetails.iterator(); it.hasNext(); )
             {
                 deets = it.next();
                 System.out.println(i.toString() + " " + deets.toString());
+                i++;
             }
             System.out.println("===============");
         }

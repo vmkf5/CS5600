@@ -23,16 +23,19 @@ public class FileDownloader implements Runnable
     private Integer segment_size;
     private Peer callback;
     private FileTracker tracker;
-    private FileOutputStream fos;
     private InputStream peer_in;
     private PrintWriter peer_out;
-    private BufferedOutputStream file_out;
+    private Long start;
+    private Long end;
+    byte[] buffer;
 
-    public FileDownloader(FileTracker tracker, Integer segment_size, Peer callback)
+    public FileDownloader(FileTracker tracker, Integer segment_size, Long start_at, Peer callback)
     {
        this.tracker = tracker;
        this.segment_size = segment_size;
        this.callback = callback;
+       this.start = start_at;
+       this.end = tracker.getDetails().getEnd();
     }
 
     private static String combine(String path1, String path2)
@@ -47,34 +50,33 @@ public class FileDownloader implements Runnable
     {
      //Assumes peers are listed in order of most recent server contact time
         ArrayList<PeerInfo> all_peers = tracker.getPeers();
-        PeerInfo peer;
         SharedFileDetails details = tracker.getDetails();
         SharedFileDetails updated_details = new SharedFileDetails(details);
         String filename = details.getFilename();
-
-        byte[] buf = new byte[segment_size];
+        RandomAccessFile file = null;
 
         //Create a new file to save the downloaded contents
         try {
-            fos = new FileOutputStream(combine(callback.getSharedDir(), filename));
-            file_out = new BufferedOutputStream(fos);
+            file = new RandomAccessFile(combine(callback.getSharedDir(), filename), "rw");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
 
-        Long current_start = Long.valueOf(0);
-        Long current_end   = Long.valueOf(segment_size-1);        //Iterate over peers to request content from, if it fails it goes to the next client
-        Integer len           = segment_size.intValue();
         Long filesize      = details.getFilesize();
+        Long current_start = this.start;
+        Long current_end   = (this.segment_size-1 > filesize) ? filesize : Long.valueOf(this.segment_size-1) ;        //Iterate over peers to request content from, if it fails it goes to the next client
+        Integer len           = (int) current_end - current_start;
+        buffer = new byte[this.segment_size];
+        int read = 0;
+        boolean got_segment = false;
         updated_details.setStart(current_start);
-        updated_details.setEnd(current_start);
-        while(current_start < filesize)
+
+        for(; current_start < end; current_start+=this.segment_size)
         {
-            for(Iterator<PeerInfo> it = all_peers.iterator(); it.hasNext(); )
+            got_segment = false;
+            for( PeerInfo peer : all_peers )
             {
-                peer = it.next();
-                try
-                {
+                try {
                     socket = new Socket(peer.getIp(), peer.getPort());
                     peer_out = new PrintWriter(socket.getOutputStream(), true);
                     peer_in = socket.getInputStream();
@@ -83,38 +85,43 @@ public class FileDownloader implements Runnable
                 }
                 if (socket != null)
                 {
-                    peer_out.write("<GET " + filename + " " + current_start.toString() + " " + current_end.toString() + ">\n");
-                    try {
-                        peer_in.read(buf, 0, len);
-                        file_out.write(buf, 0, len);
+                    peer_out.println("<GET " + filename + " " + current_start + " " + current_end+ ">");
+                    try
+                    {
+                        file.seek(current_start);
+                        read = peer_in.read(buffer, 0, len);
+                        file.write(buffer, 0, read);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     updated_details.setEnd(current_end);
-                    current_start += segment_size;
                     current_end += segment_size;
-                    if (current_end >= details.getFilesize()) {
-                        current_end = details.getFilesize();
+                    if (current_end >= filesize) {
+                        current_end = filesize;
                     }
+                    got_segment=true;
+
                     try {
                         socket.close();
                         peer_out.close();
                         peer_in.close();
+                        file.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    callback.updateSharedFileDetails(updated_details);
-
+                    break;
                 }
-
+            }
+            if(got_segment) {
+                callback.updateSharedFileDetails(updated_details);
+            }
+            else
+            {
+                break;
             }
         }
-        try {
-            file_out.flush();
-            file_out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(current_end==filesize) {
+            callback.downloadComplete(tracker);
         }
-        callback.downloadComplete(tracker);
     }
 }
