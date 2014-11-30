@@ -14,8 +14,8 @@ import server.com.Business.exception.UpdateTrackerException;
 public class updateTracker {
 	
 	private String filename;
-	private int startBytes;
-	private int endBytes;
+	private long startBytes;
+	private long endBytes;
 	private String ipAddress;
 	private int portNumber;
 	
@@ -25,16 +25,17 @@ public class updateTracker {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	public int getStartBytes() {
+	
+	public long getStartBytes() {
 		return startBytes;
 	}
-	public void setStartBytes(int startBytes) {
+	public void setStartBytes(long startBytes) {
 		this.startBytes = startBytes;
 	}
-	public int getEndBytes() {
+	public long getEndBytes() {
 		return endBytes;
 	}
-	public void setEndBytes(int endBytes) {
+	public void setEndBytes(long endBytes) {
 		this.endBytes = endBytes;
 	}
 	public String getIpAddress() {
@@ -56,9 +57,9 @@ public class updateTracker {
 	 */
 	@Override
 	public String toString() {
-		return "<updatetracker " + filename + " " + Integer.toString(startBytes) + " "
-                + Integer.toString(endBytes) + " "
-				+ ipAddress + " " + Integer.toString(portNumber) + ">\n";
+		return "<updatetracker " + filename + " " + Long.toString(startBytes) + " "
+                + Long.toString(endBytes) + " "
+				+ ipAddress + " " + Integer.toString(portNumber) + ">";
 	}
 	
 	/*

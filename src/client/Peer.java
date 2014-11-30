@@ -93,6 +93,8 @@ public class Peer
 	public void readConfig(String filename)
 	{
 		Properties prop = new Properties();
+        String path = System.getProperty("user.dir");
+        filename = this.combine(path, filename);
 		InputStream input = null;
 		try
 		{
@@ -250,7 +252,7 @@ public class Peer
 	public synchronized void initFile(String filename, SharedFileDetails info)
 	{
 		shared_files.put(filename, info);
-		sendCreateTracker(info);
+		//sendCreateTracker(info);
 	}
 
 	/**
@@ -292,7 +294,7 @@ public class Peer
 			fsManager = new FileSenderManager(share_file, my_port, myQueue);
 			Thread t = new Thread(fsManager);
 			t.start();
-			File file = new File(share_file);
+			File file = new File(this.combine(share_dir,share_file));
 			utThread = new UpdateTrackerThread(file.getName(),myQueue, my_ip,String.valueOf(my_port), out, in);
 			utThread.start();
 
@@ -318,9 +320,9 @@ public class Peer
 			ArrayList<Long> removeObjects = new ArrayList<Long>();
 			for(int lcv = 0;lcv < myQueueArray.length; lcv++)
 			{
-				long sampleStart = (long) myQueueArray[lcv];
+				long sampleStart = (Long) myQueueArray[lcv];
 				lcv++;
-				long sampleEnd = (long) myQueueArray[lcv];
+				long sampleEnd = (Long) myQueueArray[lcv];
 				if(sampleEnd == start || sampleStart == end || (sampleStart>= start && sampleEnd<=end))
 				{
 					removeObjects.add(sampleStart);
@@ -377,7 +379,7 @@ public class Peer
 		response = Response.fromString(resp);
 		if(response == null)
 		{
-			System.out.println("Unknown response from server from: " + msg.toString());
+			System.out.println("Unknown response from server: " + resp);
 			System.exit(1);
 		}
 
@@ -641,8 +643,10 @@ public class Peer
 
 	public static void main(String[] args)
 	{
-		Peer peer = new Peer("/src/data/config.properties", "");
-		//peer.startFileSenderManager();
-		peer.close();
+		Peer peer = new Peer("src/data/config.properties", "/src/data/shares");
+		peer.startFileSenderManager("qute.jpg", 0, 2000);
+        while(true){
+
+        }
 	}
 }

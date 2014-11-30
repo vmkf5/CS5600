@@ -2,9 +2,9 @@ package client;
 
 public enum Response
 {
-    CT_SUCCESS  ("<createtracker succ>\n"),
-    CT_FAIL     ("<createtracker fail>\n"),
-    CT_EXISTS   ("<createtracker ferr>\n"),
+    CT_SUCCESS  ("<createtracker succ>"),
+    CT_FAIL     ("<createtracker fail>"),
+    CT_EXISTS   ("<createtracker ferr>"),
     GET_INVAL   ("<GET invalid>\n");
 
     private final String resp;

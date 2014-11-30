@@ -41,7 +41,7 @@ public class RespCreateTracker
 	 */
 	@Override
 	public String toString() {
-		return "<createtracker " + response + ">\n";
+		return "<createtracker " + response + ">";
 	}
 
 	/*

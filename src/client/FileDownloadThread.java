@@ -179,9 +179,9 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 			ArrayList<Long> removeObjects = new ArrayList<Long>();
 			for(int lcv = 0;lcv < myQueueArray.length; lcv++)
 			{
-				long sampleStart = (long) myQueueArray[lcv];
+				long sampleStart = (Long) myQueueArray[lcv];
 				lcv++;
-				long sampleEnd = (long) myQueueArray[lcv];
+				long sampleEnd = (Long) myQueueArray[lcv];
 				if(sampleEnd == start || sampleStart == end || (sampleStart>= start && sampleEnd<=end))
 				{
 					removeObjects.add(sampleStart);

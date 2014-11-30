@@ -47,12 +47,13 @@ public class UpdateTrackerThread extends Thread
 			req.setPortNumber(new Integer(port));
 			
 			Object[] myQueueArray = myQueue.toArray();
+            System.out.println(myQueueArray.length);
 			for(int lcv = 0; lcv < myQueueArray.length ; lcv++)
 			{
-				req.setStartBytes((int) myQueueArray[lcv]);
+				req.setStartBytes((Long) myQueueArray[lcv]);
 				lcv++;
-				req.setEndBytes((int) myQueueArray[lcv]);
-				
+				req.setEndBytes((Long) myQueueArray[lcv]);
+
 				out.print(req.toString());
 				String resp = "";
 				try
