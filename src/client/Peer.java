@@ -3,6 +3,7 @@ package client;
 import server.com.Business.exception.CreateTrackerException;
 import server.com.Business.models.*;
 import server.com.File.Models.FileTracker;
+import server.com.File.Models.PeerInfo;
 import server.com.File.Models.SharedFileDetails;
 
 import java.io.*;
@@ -14,10 +15,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import client.CallbackFileInit;
-import client.FileDownloader;
+/*import client.FileDownloader;*/
 import client.FileSenderManager;
 import client.Response;
 import client.UpdateTrackerThread;
@@ -39,6 +42,7 @@ public class Peer
 	private FileSenderManager fsManager;
 	private UpdateTrackerThread utThread;
 	BlockingQueue<Long> myQueue = new LinkedBlockingQueue<Long>();
+	private String currentPath;
 
 	private Socket socket;
 	private PrintWriter out;
@@ -50,11 +54,12 @@ public class Peer
 	 * Constructor
 	 * @param filename name of the configuration file
 	 */
-	public Peer(String filename) {
+	public Peer(String filename, String currentPath) {
 		init();
 		readConfig(filename);
 		connectToServer();
 		initSharedFiles();
+		this.currentPath = currentPath;
 	}
 
 	/**
@@ -399,14 +404,28 @@ public class Peer
 		String filename = tracker_list.getFilenameAt(i-1);
 		this.getFileTracker(filename);
 	}
+	
+	public void getFileTracker(String filename)
+	{
+		FutureTask<UpdateTrackerThread> futureThread =new FutureTask<UpdateTrackerThread>(new FileDownloadThread(filename, out, in, MAX_SEGMENT_SIZE, currentPath));
+		futureThread.run();
+		try {
+			UpdateTrackerThread new_utThread = futureThread.get();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Requests a specific file tracker from the server. If successful, file download begins immediately
 	 * @param filename name of the desired file
 	 * @return
 	 */
-	public String getFileTracker(String filename)
+	/*public String getFileTracker(String filename)
 	{
+	//TODO comented COde of Levi
 		String msg = "<GET " + filename + ".track>";
 		sendToServer(msg);
 		recvFromServer();
@@ -443,18 +462,19 @@ public class Peer
 
 		message.clear();
 		return "";
-	}
+	}*/
 
 	/**
 	 * Attempts to download the file designated by the provided tracker
 	 * @param tracker tracker received from server
 	 */
-	public void downloadFile(FileTracker tracker)
+	/*public void downloadFile(FileTracker tracker)
 	{
-		Thread t = new Thread(new FileDownloader(tracker, this.segment_size, this));
+	//TODO comented this code of Levi
+		Thread t = new Thread(new FileDownloader(tracker, this.segment_size));
 		t.start();
-	}
-
+	}*/
+	
 	/**
 	 * Removes a file from the current download queue. (Thread safe)
 	 * @param tracker
@@ -621,8 +641,8 @@ public class Peer
 
 	public static void main(String[] args)
 	{
-		Peer peer = new Peer("/src/data/config.properties");
-		peer.startFileSenderManager();
+		Peer peer = new Peer("/src/data/config.properties", "");
+		//peer.startFileSenderManager();
 		peer.close();
 	}
 }
