@@ -1,6 +1,6 @@
-package com.Business.models;
+package server.com.Business.models;
 
-import com.Business.exception.GetFileTrackerMessageException;
+import server.com.Business.exception.GetFileTrackerMessageException;
 
 /*
  * author: Venkata Prashant
@@ -29,7 +29,7 @@ public class getFileTracker {
 	 */
 	@Override
 	public String toString() {
-		return "GET " + fileName;
+		return "<GET " + fileName + ".track>\n";
 	}
 	
 	/*
@@ -40,8 +40,9 @@ public class getFileTracker {
 	{
 		if(message != null)
 		{
+			message = message.replaceAll(".track", " ");
 			String[] messageSplit = message.split(" ");
-			if(messageSplit.length == 2)
+			if(messageSplit.length == 3)
 			{
 				try
 				{
@@ -59,5 +60,10 @@ public class getFileTracker {
 		}
 	}
 	
+	
+	public getFileTracker()
+	{
+		
+	}
 
 }

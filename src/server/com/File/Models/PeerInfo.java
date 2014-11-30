@@ -1,4 +1,4 @@
-package client;
+package server.com.File.Models;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -111,6 +111,11 @@ public class PeerInfo
         end   = Long.parseLong(tokens[3]);
         time  = Long.parseLong(tokens[4]);
 
+    }
+    
+    public PeerInfo()
+    {
+    	
     }
 
     public String toString()

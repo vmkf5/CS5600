@@ -1,4 +1,4 @@
-package com.Business.models;
+package server.com.Business.models;
 
 /*
  * author: Venkata Prashant
@@ -37,7 +37,7 @@ public class RespUpdateTracker {
 	 */
 	public boolean isSuccess()
 	{
-		if(response == "succ")
+		if(response.equalsIgnoreCase("succ"))
 			return true;
 		else
 			return false;
@@ -49,7 +49,7 @@ public class RespUpdateTracker {
 	 */
 	@Override
 	public String toString() {
-		return "<updatetracker " + fileName + "" + response + ">\n";
+		return "<updatetracker " + fileName + " " + response + ">";
 	}
 	/*
 	 * Description: A peer invoked function to initialize the object from the received message.
@@ -64,7 +64,7 @@ public class RespUpdateTracker {
 		}
 		catch(Exception e)
 		{
-			this.response = "ferr";
+			this.response = "fail";
 		}
 	}
 	

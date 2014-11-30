@@ -1,47 +1,78 @@
-package client;
+/*package client;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
+import server.com.File.Models.FileTracker;
+import server.com.File.Models.PeerInfo;
+import server.com.File.Models.SharedFileDetails;
 
 
-/**
+*//**
  * Handles downloading file segments from a connected peer in its own thread.
  * Once complete, the FileDownloader alerts the Peer through callback functions.
  *
  * Created by Levi Malott on 10/19/14.
- */
+ *//*
 public class FileDownloader implements Runnable
 {
-    private Socket socket;
-    private Integer segment_size;
-    private Peer callback;
-    private FileTracker tracker;
-    private InputStream peer_in;
-    private PrintWriter peer_out;
-    private Long start;
-    private Long end;
-    byte[] buffer;
+	private Socket socket;
+	private Integer segment_size;
+	private Peer callback;
+	private FileTracker tracker;
+	private InputStream peer_in;
+	private PrintWriter peer_out;
+	private Long start;
+	private Long end;
+	byte[] buffer;
 
-    public FileDownloader(FileTracker tracker, Integer segment_size, Long start_at, Peer callback)
-    {
-       this.tracker = tracker;
-       this.segment_size = segment_size;
-       this.callback = callback;
-       this.start = start_at;
-       this.end = tracker.getDetails().getEnd();
-    }
+	public FileDownloader(FileTracker tracker, Integer segment_size)
+	{
+		this.tracker = tracker;
+		this.segment_size = segment_size;       
+	}
 
-    private static String combine(String path1, String path2)
-    {
-        File f1 = new File(path1);
-        File f2 = new File(f1, path2);
-        return f2.getPath();
-    }
+	private static String combine(String path1, String path2)
+	{
+		File f1 = new File(path1);
+		File f2 = new File(f1, path2);
+		return f2.getPath();
+	}
 
-    @Override
+	public void run()
+	{
+		boolean isFileNotComplete = true;
+		long noOfSegments = tracker.getDetails().getFilesize() / segment_size;
+		Map<Long,Long> downloadedSegments = new TreeMap<Long,Long>();
+		
+		while(isFileNotComplete)
+		{
+			while(tracker.getPeers() == null || tracker.getPeers().size() == 0)
+			{
+				System.out.println("Waiting for peers");
+						try {
+							this.wait(5000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+			}
+
+
+			while();
+			{
+				
+			}
+		}
+	}
+
+	 @Override
     public void run()
     {
      //Assumes peers are listed in order of most recent server contact time
@@ -61,7 +92,7 @@ public class FileDownloader implements Runnable
         Long filesize      = details.getFilesize();
         Long current_start = this.start;
         Long current_end   = (this.segment_size-1 > filesize) ? filesize : Long.valueOf(this.segment_size-1) ;        //Iterate over peers to request content from, if it fails it goes to the next client
-        Integer len           = (int) (current_end - current_start);
+        Integer len           = (int) current_end - current_start;
         buffer = new byte[this.segment_size];
         int read = 0;
         boolean got_segment = false;
@@ -121,3 +152,4 @@ public class FileDownloader implements Runnable
         }
     }
 }
+*/

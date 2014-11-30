@@ -14,7 +14,7 @@ import server.com.Business.exception.CreateTrackerException;
 public class createFileTrackerMessage {
 
 	private String filename;
-	private Long fileBytes;
+	private long fileBytes;
 	private String description;
 	private String checkSum;
 	private String ipAddress;
@@ -26,8 +26,12 @@ public class createFileTrackerMessage {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	public Long getFileBytes() {return fileBytes;}
-	public void setFileBytes(Long fileBytes) { this.fileBytes = fileBytes; }
+	public long getFileBytes() {
+		return fileBytes;
+	}
+	public void setFileBytes(long fileBytes) {
+		this.fileBytes = fileBytes;
+	}
 	public String getDescription() {
 		return description;
 	}
@@ -60,7 +64,7 @@ public class createFileTrackerMessage {
 	@Override
 	public String toString() {
 		return "<createtracker " + filename + " " + fileBytes + " " + description
-				+ " " + checkSum + " " + ipAddress + " " + port + ">" ;
+				+ " " + checkSum + " " + ipAddress + " " + port + ">\n" ;
 	}
 
 	/*
@@ -71,20 +75,23 @@ public class createFileTrackerMessage {
 
 		if(message != null)
 		{
+			message = message.replaceAll(">", " ");
 			String[] messageSplit = message.split(" ");
+			System.out.println(messageSplit[6]);
 			if(messageSplit.length == 7)
 			{
 				try
 				{
 					this.filename = messageSplit[1];
-					this.fileBytes = new Long(messageSplit[2]);
+					this.fileBytes = new Integer(messageSplit[2]);
 					this.description = messageSplit[3];
 					this.checkSum = messageSplit[4];
 					this.ipAddress = messageSplit[5];
-					this.port = new Integer(messageSplit[5]);
+					this.port = new Integer(messageSplit[6]);
 				}
 				catch(Exception e)
 				{
+					e.printStackTrace();
 					throw new CreateTrackerException();
 				}
 			}
@@ -99,15 +106,21 @@ public class createFileTrackerMessage {
 		}
 	}
 
-    public createFileTrackerMessage(String filename, Long size, String desc, String md5, String ip, Integer port) throws CreateTrackerException
-    {
-        //TODO: add error handling
-        this.filename     = filename;
-        this.fileBytes    = size;
-        this.description  = desc;
-        this.checkSum     = md5;
-        this.ipAddress    = ip;
-        this.port         = port;
-    }
+
+	public createFileTrackerMessage()
+	{
+		
+	}
+	public createFileTrackerMessage(String filename2, Long filesize,
+			String description2, String md5, String my_ip, Integer my_port) {
+		this.filename = filename2;
+		this.fileBytes = filesize;
+		this.description = description2;
+		this.checkSum = md5;
+		this.ipAddress = my_ip;
+		this.port = port;
+		
+	}
+
 
 }

@@ -1,4 +1,4 @@
-package client;
+package server.com.File.Models;
 
 /**
  * Stores the details of a shared file or file segment.
@@ -8,8 +8,6 @@ package client;
 public class SharedFileDetails
 {
     public String filename;
-    public Long start;
-    public Long end;
     public Long filesize;
     public String md5;
     public String description;
@@ -21,23 +19,6 @@ public class SharedFileDetails
     public void setFilename(String filename) {
         this.filename = filename;
     }
-
-    public Long getStart() {
-        return start;
-    }
-
-    public void setStart(Long start) {
-        this.start = start;
-    }
-
-    public Long getEnd() {
-        return end;
-    }
-
-    public void setEnd(Long end) {
-        this.end = end;
-    }
-
     public Long getFilesize() {
         return filesize;
     }
@@ -85,22 +66,12 @@ public class SharedFileDetails
        {
            return false;
        }
-       if(this.start != ((SharedFileDetails)other).getStart())
-       {
-           return false;
-       }
-       if(this.end != ((SharedFileDetails)other).getEnd())
-       {
-           return false;
-       }
        return true;
     }
 
     public SharedFileDetails(SharedFileDetails other)
     {
         this.setDescription(other.getDescription());
-        this.setEnd(other.getEnd());
-        this.setStart(other.getStart());
         this.setFilename(other.getFilename());
         this.setFilesize(other.getFilesize());
     }

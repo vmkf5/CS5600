@@ -1,8 +1,8 @@
 package server.com.Business.models;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import server.com.Business.models.FileDetails;
 
 /*
@@ -16,7 +16,7 @@ import server.com.Business.models.FileDetails;
  */
 public class RespList {
 
-    public static String RESP_END = "<REP LIST END>\n";
+    public static String RESP_END = "<REP LIST END>";
     public static Integer RESP_FIELDS = 4;
 
 	//contains an array of FileDetails object. Each fileDetails object represents one file that is currently being shared.
@@ -110,5 +110,9 @@ public class RespList {
 		}
 	}
 	
-
+	public RespList()
+	{
+		
+	}
+	
 }

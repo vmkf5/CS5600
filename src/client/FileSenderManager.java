@@ -3,6 +3,7 @@ package client;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Handles incoming file download requests from peers in the background.
@@ -11,14 +12,16 @@ import java.net.ServerSocket;
  */
 public class FileSenderManager implements Runnable
 {
-    private String share_dir;
-    private Integer port;
+    private String share_file;
+    private int port;
     private ServerSocket server;
-
-    public FileSenderManager(String share_dir, Integer port)
+   private BlockingQueue<Long> myQueue;
+   
+    public FileSenderManager(String share_file, int port, BlockingQueue myQueue)
     {
-        this.share_dir = share_dir;
+        this.share_file = share_file;
         this.port = port;
+        this.myQueue = myQueue;
     }
 
 
@@ -39,7 +42,7 @@ public class FileSenderManager implements Runnable
             FileSender sender;
             try
             {
-                sender = new FileSender(server.accept(), share_dir);
+                sender = new FileSender(server.accept(), share_file, myQueue);
                 Thread t = new Thread(sender);
                 t.start();
             } catch (IOException e) {

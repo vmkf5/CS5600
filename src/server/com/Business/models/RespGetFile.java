@@ -1,5 +1,8 @@
 package server.com.Business.models;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -18,7 +21,7 @@ import server.com.Business.exception.RespGetFileException;
 public class RespGetFile {
 
 	private String fileName;
-	private int fileSize;
+	private long fileSize;
 	private String description;
 	private String md5;
 	
@@ -31,10 +34,10 @@ public class RespGetFile {
 	public void setFileName(String fileName) {
 		this.fileName = fileName;
 	}
-	public int getFileSize() {
+	public long getFileSize() {
 		return fileSize;
 	}
-	public void setFileSize(int fileSize) {
+	public void setFileSize(long fileSize) {
 		this.fileSize = fileSize;
 	}
 	public String getDescription() {
@@ -65,11 +68,37 @@ public class RespGetFile {
 		for(Iterator<FilePeers> ite = peers.iterator(); ite.hasNext();)
 		{
 			FilePeers peerDetails = ite.next();
-			filePeersString = filePeersString + " " + peerDetails.toString();
+			filePeersString = filePeersString + "" + peerDetails.toString() + "\n";
 		}
-		return "ResponseGetMessage " + fileName + " " + fileSize
-				+ " " + description + " " + md5 + filePeersString + "";
+		String returnMessage = "Filename: " + fileName + "\nFilesize: " + fileSize + 
+				"\nDescription: " + description + "\nMD5: " + md5 + "\n" + filePeersString;
+
+		String trackerMd5 = this.getMd5(returnMessage);
+		
+		return "<REP GET BEGIN>\n" +returnMessage +"<REP GET END " + trackerMd5 + ">";
 	}
+	
+	 public String getMd5(String msg) {
+	        String digest = null;
+	        MessageDigest md = null;
+	        try {
+	            md = MessageDigest.getInstance("MD5");
+	            byte[] hash = md.digest(msg.getBytes("UTF-8"));
+
+	            StringBuilder sb = new StringBuilder(2 * hash.length);
+	            for (byte b : hash) {
+	                sb.append(String.format("%02x", b & 0xff));
+	            }
+
+	            digest = sb.toString();
+
+	        } catch (NoSuchAlgorithmException e) {
+	            e.printStackTrace();
+	        } catch (UnsupportedEncodingException e) {
+	            e.printStackTrace();
+	        }
+	        return digest;
+	    }
 
 	/*
 	 * Description: A peer invoked constructor for creating an object from a string message received.
@@ -106,6 +135,10 @@ public class RespGetFile {
 		}
 	}
 
+	public RespGetFile()
+	{
+		
+	}
 
 
 }

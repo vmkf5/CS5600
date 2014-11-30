@@ -1,4 +1,4 @@
-package client;
+package server.com.File.Models;
 
 import java.io.File;
 import java.io.IOException;
@@ -135,6 +135,11 @@ public class FileTracker
                 }
             i++;
         }
+    }
+    
+    public FileTracker()
+    {
+    	
     }
 }
 
