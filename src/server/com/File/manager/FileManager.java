@@ -21,7 +21,7 @@ import server.com.File.Models.SharedFileDetails;
 
 public class FileManager {
 	public String classpath = new File("").getAbsolutePath();
-	public String section = "/src/com/Data/server/";
+	public String section = "\\src\\server\\com\\Data\\server\\";
 	private Semaphore sem;
 
 	public FileManager(Semaphore sem) {
@@ -56,7 +56,7 @@ public class FileManager {
 
 			tracker.setDetails(shDetails);
 			tracker.setPeers(peers);
-			
+
 			new FileTrackerModify().write(tracker);
 			return true;
 		}
@@ -166,15 +166,18 @@ public class FileManager {
 	}
 
 	public RespUpdateTracker executeUpdateTracker(updateTracker message) {
+		System.out.println("Absolute filename" + classpath + section + message.getFilename() + ".tracker");
 		File file = new File(classpath + section + message.getFilename() + ".tracker");
 		RespUpdateTracker resp = new RespUpdateTracker();
 		resp.setFileName(message.getFilename());
-		if(!file.exists())
+		
+		
+		if(file.exists())
 		{
 			FileTrackerModify ftModify = new FileTrackerModify();
-			
+
 			String fileName = file.getName();
-			
+
 			try {
 				sem.acquire();
 			} catch (InterruptedException e) {
@@ -182,19 +185,29 @@ public class FileManager {
 				e.printStackTrace();
 			}
 			FileTracker tracker = ftModify.read(fileName);
-
 			ArrayList<PeerInfo> peers = tracker.getPeers();
-			ArrayList<PeerInfo> removePeers = new ArrayList<PeerInfo>();
-			for(PeerInfo peer : peers)
+			if(peers != null && peers.size() > 0)
 			{
-				if(peer.getIp().toString().substring(1).equals(message.getIpAddress()) && peer.getPort() == message.getPortNumber())
+				System.out.println("peers != null");
+				ArrayList<PeerInfo> removePeers = new ArrayList<PeerInfo>();
+				for(PeerInfo peer : peers)
 				{
-					if(peer.getStart() >= message.getStartBytes() && peer.getEnd() <= message.getEndBytes())
+					if(peer.getIp().toString().substring(1).equals(message.getIpAddress()) && peer.getPort() == message.getPortNumber())
 					{
-						removePeers.add(peer);
+						if(peer.getStart() >= message.getStartBytes() && peer.getEnd() <= message.getEndBytes())
+						{
+							removePeers.add(peer);
+						}
 					}
 				}
+				peers.removeAll(removePeers);
 			}
+			else
+			{
+				System.out.println("Peers == null");
+				peers = new ArrayList<PeerInfo>();
+			}
+
 
 			PeerInfo peer = new PeerInfo();
 			peer.setEnd((long) message.getEndBytes());
@@ -202,21 +215,20 @@ public class FileManager {
 			peer.setPort(message.getPortNumber());
 			peer.setStart((long)message.getStartBytes());
 			peer.setTime(new Date().getTime());
+
 			
-			peers.removeAll(removePeers);
 			peers.add(peer);
 			tracker.setPeers(peers);
-
 			ftModify.fileDelete(fileName);
 			ftModify.write(tracker);
-			
+
 			sem.release();
-			
+
 			resp.setResponse("succ");
 			return resp;
 
 		}
-		resp.setResponse("fail");
+		resp.setResponse("ferr");
 		return resp;
 	}
 

@@ -84,7 +84,7 @@ public class ClientWorker extends Thread {
 						updateTracker message = new updateTracker(line);
 						resp = new FileManager(sem).executeUpdateTracker(message);
 						System.out.println(resp);
-						out.print(resp.toString());
+						out.println(resp.toString());
 					} catch (UpdateTrackerException e) {
 						RespUpdateTracker resp = new RespUpdateTracker();
 						resp.setFileName("fail");

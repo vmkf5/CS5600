@@ -252,7 +252,7 @@ public class Peer
 	public synchronized void initFile(String filename, SharedFileDetails info)
 	{
 		shared_files.put(filename, info);
-		//sendCreateTracker(info);
+		sendCreateTracker(info);
 	}
 
 	/**
@@ -320,9 +320,9 @@ public class Peer
 			ArrayList<Long> removeObjects = new ArrayList<Long>();
 			for(int lcv = 0;lcv < myQueueArray.length; lcv++)
 			{
-				long sampleStart = (Long) myQueueArray[lcv];
+				Long sampleStart = (Long) myQueueArray[lcv];
 				lcv++;
-				long sampleEnd = (Long) myQueueArray[lcv];
+				Long sampleEnd = (Long) myQueueArray[lcv];
 				if(sampleEnd == start || sampleStart == end || (sampleStart>= start && sampleEnd<=end))
 				{
 					removeObjects.add(sampleStart);
@@ -643,10 +643,8 @@ public class Peer
 
 	public static void main(String[] args)
 	{
-		Peer peer = new Peer("src/data/config.properties", "/src/data/shares");
-		peer.startFileSenderManager("qute.jpg", 0, 19682);
-        while(true){
-
-        }
+		Peer peer = new Peer("/src/data/config.properties", "");
+		//peer.startFileSenderManager();
+		peer.close();
 	}
 }

@@ -25,7 +25,7 @@ public class updateTracker {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	
+
 	public long getStartBytes() {
 		return startBytes;
 	}
@@ -70,7 +70,7 @@ public class updateTracker {
 	{
 		if(message != null)
 		{
-			message.replaceAll(">", " ");
+			message = message.replaceAll(">", " ");
 			String[] messageSplit = message.split(" ");
 			if(messageSplit.length == 6)
 			{
@@ -80,12 +80,11 @@ public class updateTracker {
 					this.startBytes = new Integer(messageSplit[2]);
 					this.endBytes = new Integer(messageSplit[3]);
 					this.ipAddress = messageSplit[4];
-					this.portNumber = new Integer(messageSplit[5]);
-					
-					
+					this.portNumber = new Integer(messageSplit[5]);	
 				}
 				catch(Exception e)
 				{
+					e.printStackTrace();
 					throw new UpdateTrackerException();
 				}
 			}
