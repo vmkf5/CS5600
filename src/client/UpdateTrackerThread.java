@@ -29,8 +29,8 @@ public class UpdateTrackerThread extends Thread
 
 	public void run()
 	{
-		while(true)
-		{
+		//while(true)
+		//{
 			while(myQueue.size() % 2 != 0)
 			{
 				try {
@@ -43,7 +43,7 @@ public class UpdateTrackerThread extends Thread
 			
 			updateTracker req = new updateTracker();
 			req.setFilename(fileName);
-			req.setIpAddress(ipAddress);
+			req.setIpAddress(ipAddress.substring(1));
 			req.setPortNumber(new Integer(port));
 			
 			Object[] myQueueArray = myQueue.toArray();
@@ -54,11 +54,13 @@ public class UpdateTrackerThread extends Thread
 				lcv++;
 				req.setEndBytes((Long) myQueueArray[lcv]);
 
-				out.print(req.toString());
+				out.println(req.toString());
+                System.out.println(req.toString());
 				String resp = "";
 				try
 				{
 					resp = in.readLine();
+                    System.out.println(resp);
 				}
 				catch(IOException e)
 				{
@@ -81,6 +83,6 @@ public class UpdateTrackerThread extends Thread
 				
 			}
 			
-		}
+		//}
 	}
 }

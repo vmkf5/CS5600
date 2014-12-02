@@ -644,7 +644,7 @@ public class Peer
 	public static void main(String[] args)
 	{
 		Peer peer = new Peer("src/data/config.properties", "/src/data/shares");
-		peer.startFileSenderManager("qute.jpg", 0, 2000);
+		peer.startFileSenderManager("qute.jpg", 0, 19682);
         while(true){
 
         }
