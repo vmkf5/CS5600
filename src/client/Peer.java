@@ -93,6 +93,8 @@ public class Peer
 	public void readConfig(String filename)
 	{
 		Properties prop = new Properties();
+        String path = System.getProperty("user.dir");
+        filename = this.combine(path, filename);
 		InputStream input = null;
 		try
 		{
@@ -292,7 +294,7 @@ public class Peer
 			fsManager = new FileSenderManager(share_file, my_port, myQueue);
 			Thread t = new Thread(fsManager);
 			t.start();
-			File file = new File(share_file);
+			File file = new File(this.combine(share_dir,share_file));
 			utThread = new UpdateTrackerThread(file.getName(),myQueue, my_ip,String.valueOf(my_port), out, in);
 			utThread.start();
 
@@ -377,7 +379,7 @@ public class Peer
 		response = Response.fromString(resp);
 		if(response == null)
 		{
-			System.out.println("Unknown response from server from: " + msg.toString());
+			System.out.println("Unknown response from server: " + resp);
 			System.exit(1);
 		}
 
@@ -641,20 +643,8 @@ public class Peer
 
 	public static void main(String[] args)
 	{
-		File currentDirectory = new File("");
-		String currentDirectory_String = currentDirectory.getAbsolutePath();
-		Peer peer = new Peer(currentDirectory_String + "/src/data/config.properties", currentDirectory_String + "/src/data/shares1/");
-		SharedFileDetails info = new SharedFileDetails();
-		info.setDescription("sample_desc");
-		info.setFilename("sample.txt");
-		info.setFilesize((long)1024);
-		info.setMd5("sample");
-		peer.sendCreateTracker(info);
+		Peer peer = new Peer("/src/data/config.properties", "");
 		//peer.startFileSenderManager();
 		peer.close();
-		while(true)
-		{
-			
-		}
 	}
 }

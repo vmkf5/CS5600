@@ -25,7 +25,7 @@ public class updateTracker {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
-	
+
 	public long getStartBytes() {
 		return startBytes;
 	}
