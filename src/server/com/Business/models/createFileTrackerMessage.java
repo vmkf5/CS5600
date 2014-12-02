@@ -64,7 +64,7 @@ public class createFileTrackerMessage {
 	@Override
 	public String toString() {
 		return "<createtracker " + filename + " " + fileBytes + " " + description
-				+ " " + checkSum + " " + ipAddress + " " + port + ">\n" ;
+				+ " " + checkSum + " " + ipAddress + " " + port + ">" ;
 	}
 
 	/*
@@ -118,7 +118,7 @@ public class createFileTrackerMessage {
 		this.description = description2;
 		this.checkSum = md5;
 		this.ipAddress = my_ip;
-		this.port = port;
+		this.port = my_port;
 		
 	}
 

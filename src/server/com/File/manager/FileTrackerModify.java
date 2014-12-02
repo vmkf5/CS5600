@@ -18,7 +18,7 @@ import server.com.File.Models.SharedFileDetails;
 public class FileTrackerModify {
 	
 	public String classpath = new File("").getAbsolutePath();
-	public String section = "/src/com/Data/server/";
+	public String section = "/src/server/com/Data/server/";
 	public String fileTracker_FileName = "FileName:";
 	public String fileTracker_FileSize  = "Filesize:";
 	public String fileTracker_Description = "Description:";

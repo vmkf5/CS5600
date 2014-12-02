@@ -318,9 +318,9 @@ public class Peer
 			ArrayList<Long> removeObjects = new ArrayList<Long>();
 			for(int lcv = 0;lcv < myQueueArray.length; lcv++)
 			{
-				long sampleStart = (long) myQueueArray[lcv];
+				Long sampleStart = (Long) myQueueArray[lcv];
 				lcv++;
-				long sampleEnd = (long) myQueueArray[lcv];
+				Long sampleEnd = (Long) myQueueArray[lcv];
 				if(sampleEnd == start || sampleStart == end || (sampleStart>= start && sampleEnd<=end))
 				{
 					removeObjects.add(sampleStart);
@@ -641,8 +641,20 @@ public class Peer
 
 	public static void main(String[] args)
 	{
-		Peer peer = new Peer("/src/data/config.properties", "");
+		File currentDirectory = new File("");
+		String currentDirectory_String = currentDirectory.getAbsolutePath();
+		Peer peer = new Peer(currentDirectory_String + "/src/data/config.properties", currentDirectory_String + "/src/data/shares1/");
+		SharedFileDetails info = new SharedFileDetails();
+		info.setDescription("sample_desc");
+		info.setFilename("sample.txt");
+		info.setFilesize((long)1024);
+		info.setMd5("sample");
+		peer.sendCreateTracker(info);
 		//peer.startFileSenderManager();
 		peer.close();
+		while(true)
+		{
+			
+		}
 	}
 }
