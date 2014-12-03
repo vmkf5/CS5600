@@ -642,9 +642,14 @@ public class Peer
 
 
 	public static void main(String[] args)
-	{
-		Peer peer = new Peer("/src/data/config.properties", "");
-		//peer.startFileSenderManager();
-		peer.close();
+    {
+        File file = new File("");
+		Peer peer = new Peer("src/data/config.properties", file.getAbsolutePath());
+		peer.startFileSenderManager("qute.jpg", 0, 19687);
+        while(true)
+        {
+
+        }
+		//peer.close();
 	}
 }
