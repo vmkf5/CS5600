@@ -23,7 +23,8 @@ public class FileSender implements Runnable
     public FileSender(Socket socket, String share_file, BlockingQueue<Long> myQueue)
     {
         this.socket = socket;
-        this.share_file = share_file;
+        File file = new File("");
+        this.share_file = file.getAbsolutePath() + share_file;
         while(myQueue.size()%2 == 0)
         {
         	try {
