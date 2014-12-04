@@ -37,6 +37,7 @@ public class FileSegmentDownload implements Callable<Long> {
 		this.current_start = current_start;
 		this.file = file;
 		this.sem = sem;
+        this.filename = filename;
 	}
 	
 	@Override
@@ -47,11 +48,15 @@ public class FileSegmentDownload implements Callable<Long> {
         if (socket != null)
         {
         	byte[] buffer = new byte[(int) (current_end - current_start)];
-            peer_out.println("<GET " + filename + " " + current_start + " " + current_end+ ">");
+
+            System.out.println("<GET " + this.filename + " " + current_start + " " + current_end+ ">");
+            peer_out.println("<GET " + this.filename + " " + current_start + " " + current_end+ ">");
             try
             {
                 file.seek(current_start);
+                System.out.println("before read");
                 int read  = peer_in.read(buffer, 0, (int) ((int) current_end - current_start));
+                System.out.println("after read");
                 sem.acquire();
                 file.write(buffer, 0, read);
                 sem.release();
