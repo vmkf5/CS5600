@@ -301,6 +301,8 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 			return segmentStart;
 		}
 
+		
+		
 		return -1;
 	}
 

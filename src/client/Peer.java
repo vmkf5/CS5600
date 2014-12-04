@@ -28,6 +28,7 @@ import client.UpdateTrackerThread;
 
 public class Peer
 {
+	private String peerName;
 	private Integer server_port;
 	private InetAddress server_ip;
 	private Integer my_port;
@@ -55,13 +56,14 @@ public class Peer
 	 * Constructor
 	 * @param filename name of the configuration file
 	 */
-	public Peer(String filename) {
+	public Peer(String filename, String peerName) {
 		init();
 		readConfig(filename);
 		connectToServer();
 		//initSharedFiles();
 		File file = new File("");
 		this.currentPath = file.getAbsolutePath();
+		this.peerName = peerName;
 	}
 
 	/**
@@ -100,8 +102,8 @@ public class Peer
 	public void readConfig(String filename)
 	{
 		Properties prop = new Properties();
-        String path = System.getProperty("user.dir");
-        filename = this.combine(path, filename);
+		String path = System.getProperty("user.dir");
+		filename = this.combine(path, filename);
 		InputStream input = null;
 		try
 		{
@@ -325,15 +327,22 @@ public class Peer
 
 			Object[] myQueueArray = myQueue.toArray();
 			ArrayList<Long> removeObjects = new ArrayList<Long>();
+			long share_start = start;
+			long share_end = end;
 			for(int lcv = 0;lcv < myQueueArray.length; lcv++)
 			{
 				Long sampleStart = (Long) myQueueArray[lcv];
 				lcv++;
 				Long sampleEnd = (Long) myQueueArray[lcv];
-				if(sampleEnd == start || sampleStart == end || (sampleStart>= start && sampleEnd<=end))
+				if(sampleEnd == start - 1 || sampleStart == end + 1 || (sampleStart>= start && sampleEnd<=end))
 				{
+
 					removeObjects.add(sampleStart);
 					removeObjects.add(sampleEnd);
+					share_start = (sampleStart < share_start) ? sampleStart : share_start;
+					share_start = ( start < share_start )  ? start : share_start;
+					share_end   = (sampleEnd > share_end ) ? sampleEnd : share_end;
+					share_end   = (end > share_end) ? end : share_end;
 				}
 			}
 
@@ -408,15 +417,15 @@ public class Peer
 		return "";
 	}
 
-	public void getFileTracker(Integer i)
+	/*public void getFileTracker(Integer i)
 	{
 		String filename = tracker_list.getFilenameAt(i-1);
-		this.getFileTracker(filename);
-	}
-	
-	public void getFileTracker(String filename)
+		this.getFileTracker(filename, );
+	}*/
+
+	public void getFileTracker(String filename, String relativePath)
 	{
-		FutureTask<UpdateTrackerThread> futureThread =new FutureTask<UpdateTrackerThread>(new FileDownloadThread(filename, out, in, MAX_SEGMENT_SIZE, currentPath));
+		FutureTask<UpdateTrackerThread> futureThread =new FutureTask<UpdateTrackerThread>(new FileDownloadThread(filename, out, in, MAX_SEGMENT_SIZE, currentPath + relativePath));
 		futureThread.run();
 		try {
 			UpdateTrackerThread new_utThread = futureThread.get();
@@ -483,7 +492,7 @@ public class Peer
 		Thread t = new Thread(new FileDownloader(tracker, this.segment_size));
 		t.start();
 	}*/
-	
+
 	/**
 	 * Removes a file from the current download queue. (Thread safe)
 	 * @param tracker
@@ -648,16 +657,16 @@ public class Peer
 	}
 
 
-	public static void main(String[] args)
+	/*public static void main(String[] args)
 	{
 		File file = new File("");
-		Peer peer = new Peer("/src/data/config.properties");
-		
+		Peer peer = new Peer("/src/data/config.properties","");
+
 		//peer.getTrackerList();
 		peer.getFileTracker("qute.jpg");
-		
+
 		while(true);
 		//peer.startFileSenderManager();
-		
-	}
+
+	}*/
 }

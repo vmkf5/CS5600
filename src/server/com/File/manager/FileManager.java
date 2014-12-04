@@ -21,11 +21,13 @@ import server.com.File.Models.SharedFileDetails;
 
 public class FileManager {
 	public String classpath = new File("").getAbsolutePath();
-	public String section = "\\src\\server\\com\\Data\\server\\";
+	//public String section = "\\src\\server\\com\\Data\\server\\";
+	public String section;
 	private Semaphore sem;
 
-	public FileManager(Semaphore sem) {
+	public FileManager(Semaphore sem, String section) {
 		this.sem = sem;
+		this.section = section;
 	}
 
 	public boolean executeCreateTracker(createFileTrackerMessage createFileTracker)
@@ -128,16 +130,13 @@ public class FileManager {
 				peer.setEndByte(peerInfo.getEnd());
 				peer.setIpAddress(peerInfo.getIp().toString().substring(1));
 				peer.setPortNumber(peerInfo.getPort());
-				peer.setStartByte(peerInfo.getEnd());
+				peer.setStartByte(peerInfo.getStart());
 				peer.setTimeStamp(new Date(peerInfo.getTime()));
 
 				peers.add(peer);
 			}
 
 			resp.setPeers(peers);
-
-			System.out.println(resp.toString());
-			
 			return resp;
 
 		}
