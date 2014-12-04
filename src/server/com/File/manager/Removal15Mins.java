@@ -13,13 +13,14 @@ import server.com.File.Models.PeerInfo;
 public class Removal15Mins extends Thread 
 {
 	public String classpath = new File("").getAbsolutePath();
-	public String section = "/src/com/Data/server/";
+	public String section;
 	public long waitTime = 15 * 60 * 60;
 	private Semaphore sem;
-	
-	
-	public Removal15Mins(Semaphore sem) {
+
+
+	public Removal15Mins(Semaphore sem, String section) {
 		this.sem = sem;
+		this.section = section;
 	}
 
 	public void run()
@@ -28,44 +29,46 @@ public class Removal15Mins extends Thread
 		{
 			File directory = new File(classpath + section);
 			File[] files = directory.listFiles();
-
-			FileTrackerModify ftModify = new FileTrackerModify();
-
-			for(File file : files)
+			if(files != null)
 			{
+				FileTrackerModify ftModify = new FileTrackerModify(section);
+
+				for(File file : files)
+				{
+					try {
+						sem.acquire();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					String fileName = file.getName();
+					FileTracker tracker = ftModify.read(fileName);
+
+					ArrayList<PeerInfo> peers = tracker.getPeers();
+					for(PeerInfo peer : peers)
+					{
+						long current_timestamp = new Date().getTime();
+						if(peer.getTime() - current_timestamp >= waitTime)
+						{
+							peers.remove(peer);
+						}
+					}
+
+					tracker.setPeers(peers);
+
+					ftModify.fileDelete(fileName);
+					ftModify.write(tracker);
+
+					sem.release();
+
+				}
+
 				try {
-					sem.acquire();
+					this.sleep(waitTime);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				String fileName = file.getName();
-				FileTracker tracker = ftModify.read(fileName);
-
-				ArrayList<PeerInfo> peers = tracker.getPeers();
-				for(PeerInfo peer : peers)
-				{
-					long current_timestamp = new Date().getTime();
-					if(peer.getTime() - current_timestamp >= waitTime)
-					{
-						peers.remove(peer);
-					}
-				}
-
-				tracker.setPeers(peers);
-
-				ftModify.fileDelete(fileName);
-				ftModify.write(tracker);
-
-				sem.release();
-				
-			}
-
-			try {
-				this.sleep(waitTime);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
 		}
 	}

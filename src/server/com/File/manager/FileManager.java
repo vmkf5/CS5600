@@ -59,7 +59,7 @@ public class FileManager {
 			tracker.setDetails(shDetails);
 			tracker.setPeers(peers);
 
-			new FileTrackerModify().write(tracker);
+			new FileTrackerModify(section).write(tracker);
 			return true;
 		}
 		/*else
@@ -105,7 +105,7 @@ public class FileManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			FileTracker tracker = new FileTrackerModify().read(file.getName());
+			FileTracker tracker = new FileTrackerModify(section).read(file.getName());
 			sem.release();
 			RespGetFile resp = new RespGetFile();
 			if(tracker == null)
@@ -147,7 +147,7 @@ public class FileManager {
 		File directory = new File(classpath + section);
 		File[] files = directory.listFiles();
 
-		FileTrackerModify ftModify = new FileTrackerModify();
+		FileTrackerModify ftModify = new FileTrackerModify(section);
 
 		RespList respList = new RespList();
 		ArrayList<FileDetails> fileDetails = new ArrayList<FileDetails>();
@@ -185,7 +185,7 @@ public class FileManager {
 		
 		if(file.exists())
 		{
-			FileTrackerModify ftModify = new FileTrackerModify();
+			FileTrackerModify ftModify = new FileTrackerModify(section);
 
 			String fileName = file.getName();
 

@@ -25,6 +25,11 @@ public class FileTrackerModify {
 	public String fileTracker_MD5 = "MD5:";
 	
 	
+	public FileTrackerModify(String section)
+	{
+		this.section = section;
+	}
+	
 	public synchronized FileTracker read(String fileName)
 	{
 		File file = new File(classpath + section + fileName);

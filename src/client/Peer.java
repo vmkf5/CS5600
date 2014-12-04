@@ -12,6 +12,7 @@ import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -290,6 +291,39 @@ public class Peer
 		return "";
 	}
 
+	public SharedFileDetails createFileTrackerMessageForFile(File file)
+	{
+		SharedFileDetails fileDetails = new SharedFileDetails();
+		fileDetails.setFilename(file.getName());
+		fileDetails.setDescription("Desc");
+		fileDetails.setFilesize(file.length());
+		
+		 try
+	        {
+	            FileInputStream in = new FileInputStream(file.getAbsolutePath());
+	            MessageDigest md5 = MessageDigest.getInstance("MD5");
+	            DigestInputStream din = new DigestInputStream(in, md5);
+	            while (din.read() != -1);
+	            din.close();
+	            byte[] digest = md5.digest();
+	            StringBuilder sb = new StringBuilder(2 * digest.length);
+	            for (byte b : digest) {
+	                sb.append(String.format("%02x", b & 0xff));
+	            }
+	           fileDetails.setMd5(sb.toString());
+	        }
+	        catch (IOException ex)
+	        {
+	            System.err.println(ex);
+	        }
+	        catch (NoSuchAlgorithmException ex)
+	        {
+	            System.err.println(ex);
+	        }
+		 
+		 return fileDetails;
+	}
+	
 	/**
 	 * Starts the file sending manager as a background task to accept incoming queries and
 	 * transmit file segments.
@@ -298,12 +332,15 @@ public class Peer
 	{
 		try 
 		{
+			File file = new File(currentPath + share_file);
+			SharedFileDetails fileDetails = this.createFileTrackerMessageForFile(file);
+			
+			this.sendCreateTracker(fileDetails);
 			myQueue.put(start);
 			myQueue.put(end);
 			fsManager = new FileSenderManager(share_file, my_port, myQueue);
 			Thread t = new Thread(fsManager);
 			t.start();
-			File file = new File(this.combine(share_dir,share_file));
 			utThread = new UpdateTrackerThread(file.getName(),myQueue, my_ip,String.valueOf(my_port), out, in);
 			utThread.start();
 
@@ -346,14 +383,14 @@ public class Peer
 				}
 			}
 
-			fsManager.wait();
-			utThread.wait();
+			fsManager.sleep(10000);
+			utThread.sleep(10000);
 			if(removeObjects.size() > 0)
 				myQueue.removeAll(removeObjects);
-			myQueue.put(start);
-			myQueue.put(end);
-			fsManager.notify();
-			utThread.notify();
+			myQueue.put(share_start);
+			myQueue.put(share_end);
+			fsManager.interrupt();
+			utThread.interrupt();
 
 		}
 		catch (InterruptedException e) {

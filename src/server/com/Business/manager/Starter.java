@@ -21,8 +21,6 @@ public class Starter {
 	
 	public void ListenSocket()
 	{
-		Removal15Mins remove = new Removal15Mins(sem);
-		remove.run();
 		ServerSocket server = null;
 		try{
 			server = new ServerSocket(4000);
@@ -34,7 +32,7 @@ public class Starter {
 		  while(true){
 		    ClientWorker w;
 		    try{
-		//server.accept returns a client connection
+		    	//server.accept returns a client connection
 		      w = new ClientWorker(server.accept(),sem, relativePath);
 		      Thread t = new Thread(w);
 		      t.start();

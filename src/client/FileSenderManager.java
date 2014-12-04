@@ -10,7 +10,7 @@ import java.util.concurrent.BlockingQueue;
  * Each request spawns a new handler thread.
  * Created by Levi Malott on 10/19/14.
  */
-public class FileSenderManager implements Runnable
+public class FileSenderManager extends Thread
 {
     private String share_file;
     private int port;

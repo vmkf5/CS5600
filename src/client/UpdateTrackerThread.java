@@ -29,8 +29,8 @@ public class UpdateTrackerThread extends Thread
 
 	public void run()
 	{
-		//while(true)
-		//{
+		while(true)
+		{
 			while(myQueue.size() % 2 != 0)
 			{
 				try {
@@ -82,6 +82,13 @@ public class UpdateTrackerThread extends Thread
 				
 			}
 			
-		//}
+			try {
+				this.sleep(30000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				//e.printStackTrace();
+			}
+			
+		}
 	}
 }
