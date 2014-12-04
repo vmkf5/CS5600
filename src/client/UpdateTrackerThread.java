@@ -16,8 +16,9 @@ public class UpdateTrackerThread extends Thread
 	private String port;
 	private PrintWriter out;
 	private BufferedReader in;
+	private String peerName;
 	
-	public UpdateTrackerThread(String fileName, BlockingQueue<Long> myQueue, String ipAddress, String port, PrintWriter out, BufferedReader in)
+	public UpdateTrackerThread(String fileName, BlockingQueue<Long> myQueue, String ipAddress, String port, PrintWriter out, BufferedReader in, String peerName)
 	{
 		this.fileName = fileName;
 		this.myQueue = myQueue;
@@ -25,6 +26,7 @@ public class UpdateTrackerThread extends Thread
 		this.port = port;
 		this.out = out;
 		this.in = in;
+		this.peerName = peerName;
 	}
 
 	public void run()
@@ -54,16 +56,16 @@ public class UpdateTrackerThread extends Thread
 				req.setEndBytes((Long) myQueueArray[lcv]);
 
 				out.println(req.toString());
-                System.out.println(req.toString());
+                //System.out.println(req.toString());
 				String resp = "";
 				try
 				{
 					resp = in.readLine();
-                    System.out.println(resp);
+                    //System.out.println(resp);
 				}
 				catch(IOException e)
 				{
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
 				
 				if(resp == null)
@@ -72,7 +74,7 @@ public class UpdateTrackerThread extends Thread
 				}
 				else if(resp.contains("succ"))
 				{
-					System.out.println("I am sharing from "+ req.getStartBytes() + " to " + req.getEndBytes() + "." );
+					System.out.println("I am " + peerName + " and I'm sharing " + fileName + " from " +req.getStartBytes() + " to " + req.getEndBytes() + " bytes.");
 				}
 				else
 				{

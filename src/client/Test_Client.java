@@ -94,6 +94,8 @@ public class Test_Client {
 			peer9.getFileTracker("qute.jpg","\\test_client\\client_9");
 			peer10.getTrackerList();
 			peer10.getFileTracker("qute.jpg","\\test_client\\client_10");
+			
+			while(true);
 		}
 		//peer6.getFileTracker("qute.jpg");
 		

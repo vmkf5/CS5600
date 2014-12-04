@@ -36,7 +36,7 @@ import server.com.File.Models.FileTracker;
 import server.com.File.Models.PeerInfo;
 import server.com.File.Models.SharedFileDetails;
 
-public class FileDownloadThread implements Callable<Boolean> {
+public class FileDownloadThread extends Thread {
 
 	private String filename;
 	private PrintWriter out;
@@ -47,24 +47,27 @@ public class FileDownloadThread implements Callable<Boolean> {
 	private BlockingQueue<Long> myQueue; 
 	private FileSenderManager fsManager;
 	private UpdateTrackerThread utThread;
+	private String filepath = null;
+	private String peerName;
+	
 
 
-
-
-	public FileDownloadThread(String filename, PrintWriter out, BufferedReader in, int max_segment_size, String currentPath)
+	public FileDownloadThread(String filename, PrintWriter out, BufferedReader in, int max_segment_size, String currentPath, String peerName)
 	{
 		this.filename = filename;
 		this.out = out;
 		this.in = in;
 		this.max_segment_size = max_segment_size;
 		this.currentPath = currentPath;
-
+		this.filepath = currentPath + "/" + filename;
+		this.peerName = peerName;
+		
 		try {
 			ServerSocket sample = new ServerSocket(0);
 
 			int port = sample.getLocalPort();
 			myQueue = new LinkedBlockingQueue<Long>();
-			/*fsManager = new FileSenderManager(currentPath + filename, port, myQueue);
+			/*fsManager = new FileSenderManager(filepath, port, myQueue);
 			fsManager.run();
 			utThread = new UpdateTrackerThread(filename, myQueue, sample.getInetAddress().toString().substring(1), String.valueOf(port), out, in);
 			utThread.run();*/
@@ -83,16 +86,15 @@ public class FileDownloadThread implements Callable<Boolean> {
 		out.println(msg);
 		ArrayList<String> message = new ArrayList<String>();
 		String resp = "";
-		while( resp != null && !resp.contains("GET END") )
-		{
-			try {
-				resp = in.readLine();
+		try {
+			while( resp != null && !resp.contains("GET END") )
+			{
+                resp = in.readLine();
 				message.add(resp);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 			}
-			
+		} catch (IOException e) {
+			System.out.println("Communication with server was interrupted. Exiting..");
+			System.exit(1);
 		}
 		if( message.size() == 0 )
 		{
@@ -104,9 +106,7 @@ public class FileDownloadThread implements Callable<Boolean> {
 		String md5_recvd = message.get(message.size()-1).split(" ")[3];
 		//remove the pesky '>' character
 		md5_recvd = md5_recvd.substring(0, md5_recvd.length()-1);
-
-		//compare the received md5 with the computed for validity
-		md5_recvd = getMd5(md5_recvd);
+		
 		//To compute the MD5 hash, the header and tail of the message are ignored
 		//then put all the data into one string and compute the hash
 		String content =  message.subList(1,message.size()-1).toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n");
@@ -154,7 +154,7 @@ public class FileDownloadThread implements Callable<Boolean> {
 	public void writeSampleData(int noOfSegments)
 	{
 		try {
-			FileOutputStream fileOut = new FileOutputStream(currentPath + filename);
+			FileOutputStream fileOut = new FileOutputStream(filepath);
 			BufferedOutputStream buffOut = new BufferedOutputStream(fileOut);
 
 			byte[] sampleSegmentData = new byte[max_segment_size];
@@ -180,6 +180,7 @@ public class FileDownloadThread implements Callable<Boolean> {
 
 	public void addSegmentToShare(long start, long end)
 	{
+		
         Object[] myQueueArray = myQueue.toArray();
         ArrayList<Long> removeObjects = new ArrayList<Long>();
         long share_start = start;
@@ -315,7 +316,7 @@ public class FileDownloadThread implements Callable<Boolean> {
     }
 
 
-	public Boolean call()
+	public void run()
 	{
 		int noOfSegmentsDownloaded = 0;
 		long filesize = -1;
@@ -332,7 +333,7 @@ public class FileDownloadThread implements Callable<Boolean> {
 			{
 				Thread t = new Thread();
 				try {
-					t.sleep(100);
+					t.sleep(5000);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					//e.printStackTrace();
@@ -342,7 +343,6 @@ public class FileDownloadThread implements Callable<Boolean> {
                 filesize = tracker.getDetails().getFilesize();
 			}
 
-			String filepath = currentPath + "/" + filename;
 
 			File file = new File(filepath);
 
@@ -415,7 +415,12 @@ public class FileDownloadThread implements Callable<Boolean> {
         {
             System.err.println(ex);
         }
-		return info.md5 == tracker.getDetails().getMd5();
+        
+		if(info.md5 == tracker.getDetails().getMd5())
+			System.out.println("I'm "+ peerName +" and I've finished downloading " + filename);
+        else
+            System.out.println("I'm " + peerName + "and the MD5's did not match.");
+			
 	}
 
 }

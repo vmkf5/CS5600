@@ -85,7 +85,7 @@ public class Peer
 		try {
 			ServerSocket socket =new ServerSocket(0);
 			my_ip = this.getLocalHostLANAddress().toString();
-			System.out.println("IP: " + my_ip);
+			//System.out.println("IP: " + my_ip);
 			my_port = socket.getLocalPort();
 			socket.close();
 		} catch (UnknownHostException e) {
@@ -276,7 +276,7 @@ public class Peer
 			socket = new Socket(server_ip, server_port);
 			out    = new PrintWriter(socket.getOutputStream(), true);
 			in     = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			System.out.println("Connected to server:" + server_ip.toString());
+			//System.out.println("Connected to server:" + server_ip.toString());
 		}
 		catch (UnknownHostException e)
 		{
@@ -341,11 +341,12 @@ public class Peer
 			fsManager = new FileSenderManager(share_file, my_port, myQueue);
 			Thread t = new Thread(fsManager);
 			t.start();
-			utThread = new UpdateTrackerThread(file.getName(),myQueue, my_ip,String.valueOf(my_port), out, in);
+			utThread = new UpdateTrackerThread(file.getName(),myQueue, my_ip,String.valueOf(my_port), out, in, peerName);
 			utThread.start();
 
+			
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 
 
@@ -383,8 +384,8 @@ public class Peer
 				}
 			}
 
-			fsManager.sleep(10000);
-			utThread.sleep(10000);
+			//fsManager.sleep(10000);
+			//utThread.sleep(10000);
 			if(removeObjects.size() > 0)
 				myQueue.removeAll(removeObjects);
 			myQueue.put(share_start);
@@ -423,7 +424,7 @@ public class Peer
 		msg = new createFileTrackerMessage(info.filename, info.filesize, info.description,
 				info.md5, this.my_ip, this.my_port);
 		out.println(msg.toString());
-		System.out.println("Sent message: " + msg.toString());
+		//System.out.println("Sent message: " + msg.toString());
 		try {
 			resp = in.readLine();
 		} catch (IOException e) {
@@ -436,7 +437,7 @@ public class Peer
 			System.exit(1);
 		}
 
-		System.out.println(resp);
+		//System.out.println(resp);
 
 		switch(response)
 		{
@@ -454,23 +455,16 @@ public class Peer
 		return "";
 	}
 
-	/*public void getFileTracker(Integer i)
+	/**
+     * Obtains a requested filetracker from the server and subsequenty downloads the file designated
+     * by the tracker.
+     * @param filename name of the file to download
+     */
+	
+	public void getFileTracker(String filename, String section)
 	{
-		String filename = tracker_list.getFilenameAt(i-1);
-		this.getFileTracker(filename, );
-	}*/
-
-	public void getFileTracker(String filename, String relativePath)
-	{
-		FutureTask<Boolean> futureThread =new FutureTask<Boolean>(new FileDownloadThread(filename, out, in, MAX_SEGMENT_SIZE, currentPath + relativePath));
-		futureThread.run();
-		try {
-			Boolean isComplete = futureThread.get();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			e.printStackTrace();
-		}
+		FileDownloadThread download = new FileDownloadThread(filename, out, in, MAX_SEGMENT_SIZE, currentPath + section,peerName);
+		download.start();
 	}
 
 	/**
@@ -543,7 +537,7 @@ public class Peer
 	{
 		removeFileFromQueue(tracker);
 		deleteTrackerFromCache(tracker);
-		System.out.println("Successfully downloaded " + tracker.getDetails().getFilename());
+		//System.out.println("Successfully downloaded " + tracker.getDetails().getFilename());
 	}
 
 	/**
@@ -565,12 +559,13 @@ public class Peer
 	/*
     Call after sending a message to the server. Stores all incoming messages into queue.
 	 */
-	public void recvFromServer()
+	public void recvFromServer(String end_token)
 	{
-		String resp = null;
+		String resp = "";
 		try {
-			while( (resp = in.readLine()) != null )
+			while( resp != null && !resp.contains(end_token) )
 			{
+				resp = in.readLine();
 				message.add(resp);
 			}
 		} catch (IOException e) {
@@ -590,8 +585,9 @@ public class Peer
 			System.out.println("Socket was unexpectedly closed. Exiting..");
 			System.exit(1);
 		}
-
+		//System.out.println("Sending: " + REQ_LIST);
 		out.println(REQ_LIST);
+		recvFromServer("LIST END");
 
 		if( message.size() == 0 )
 		{
