@@ -78,9 +78,9 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 		String msg = "<GET " + filename + ".track>";
 		out.println(msg);
 		ArrayList<String> message = new ArrayList<String>();
-		String resp = null;
+		String resp = "";
 		try {
-			while( (resp = in.readLine()) != null )
+			while( resp != null && !resp.contains("GET END") )
 			{
 				message.add(resp);
 			}
@@ -104,7 +104,8 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 		//To compute the MD5 hash, the header and tail of the message are ignored
 		//then put all the data into one string and compute the hash
 		String content =  message.subList(1,message.size()-1).toString().replaceAll("\\[|\\]", "").replaceAll(", ", "\n");
-		content = content.substring(1,content.length()-1);
+		//content = content.substring(1,content.length()-1);
+        content += "\n";
 		content = getMd5(content);
 		if( content.equals(md5_recvd))
 		{
@@ -144,7 +145,7 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 		return digest;
 	}
 
-	public void writeSampleData(String filename, int noOfSegments)
+	public void writeSampleData(int noOfSegments)
 	{
 		try {
 			FileOutputStream fileOut = new FileOutputStream(currentPath + filename);
@@ -161,7 +162,8 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 				buffOut.write(sampleSegmentData);
 				buffOut.flush();
 			}
-
+            fileOut.flush();
+            fileOut.close();
 			buffOut.close();
 
 		} catch (IOException e1) {
@@ -172,36 +174,49 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 
 	public void addSegmentToShare(long start, long end)
 	{
-		try
-		{
+        Object[] myQueueArray = myQueue.toArray();
+        ArrayList<Long> removeObjects = new ArrayList<Long>();
+        long share_start = start;
+        long share_end = end;
+        for(int lcv = 0;lcv < myQueueArray.length; lcv++)
+        {
+            Long sampleStart = (Long) myQueueArray[lcv];
+            lcv++;
+            Long sampleEnd = (Long) myQueueArray[lcv];
+            if(sampleEnd == start - 1 || sampleStart == end + 1 || (sampleStart>= start && sampleEnd<=end))
+            {
 
-			Object[] myQueueArray = myQueue.toArray();
-			ArrayList<Long> removeObjects = new ArrayList<Long>();
-			for(int lcv = 0;lcv < myQueueArray.length; lcv++)
-			{
-				Long sampleStart = (Long) myQueueArray[lcv];
-				lcv++;
-				Long sampleEnd = (Long) myQueueArray[lcv];
-				if(sampleEnd == start || sampleStart == end || (sampleStart>= start && sampleEnd<=end))
-				{
-					removeObjects.add(sampleStart);
-					removeObjects.add(sampleEnd);
-				}
-			}
+                removeObjects.add(sampleStart);
+                removeObjects.add(sampleEnd);
+                share_start = (sampleStart < share_start) ? sampleStart : share_start;
+                share_start = ( start < share_start )  ? start : share_start;
+                share_end   = (sampleEnd > share_end ) ? sampleEnd : share_end;
+                share_end   = (end > share_end) ? end : share_end;
+            }
+        }
+        try {
 
-			fsManager.wait();
+            if(removeObjects.size() > 0)
+				myQueue.removeAll(removeObjects);
+            myQueue.put(share_start);
+            myQueue.put(share_end);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+/*		fsManager.wait();
 			utThread.wait();
 			if(removeObjects.size() > 0)
 				myQueue.removeAll(removeObjects);
-			myQueue.put(start);
-			myQueue.put(end);
-			fsManager.notify();
-			utThread.notify();
+
+//			fsManager.notify();
+*			utThread.notify();
 
 		}
 		catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		*/
 
 	}
 
@@ -270,111 +285,122 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 
 	public long findSegmentStartForClient(Object[] myQueueArray, long start, long end)
 	{
-		long segmentStart = start;
-		long segmentEnd = start + max_segment_size;
-		boolean segmentDownloaded = false;
-		while(segmentEnd <= end)
-		{
-			for(int i = 0; i < myQueueArray.length ; i++)
-			{
-				long downloadedStart = (Long) myQueueArray[i];
-				i++;
-				long downloadedEnd = (Long) myQueueArray[i];
+        if( myQueueArray.length == 0)
+        {
+            return start;
+        }
+        for(int i = 0; i < myQueueArray.length ; i++)
+        {
+            long downloadedStart = (Long) myQueueArray[i];
+            i++;
+            long downloadedEnd = (Long) myQueueArray[i];
 
-				if(segmentStart >= downloadedStart && segmentEnd <= downloadedEnd)
-				{
-					if(segmentEnd < end)
-					{
-						segmentStart = segmentEnd;
-						segmentEnd = segmentStart + max_segment_size;
-						break;
-					}
-					else
-					{
-						return -1;
-					}
+            if( downloadedStart <= start  && end <= downloadedEnd )
+            {
+                return -1;
+            }
+            else if( downloadedStart == start && downloadedEnd <= end )
+            {
+                return downloadedEnd + 1;
+            }
+
+        }
+        return start;
+    }
 
 
-				}
-			}
-
-			return segmentStart;
-		}
-
-		
-		
-		return -1;
-	}
-
-	public UpdateTrackerThread call()
+	public Boolean call()
 	{
 		int noOfSegmentsDownloaded = 0;
 		long filesize = -1;
 		Object[] myQueueArray = myQueue.toArray();
 		FileTracker tracker = new FileTracker();
-		
-		while(!(myQueueArray.length == 2 && (((Long) myQueueArray[0]) == 0) && (((Long)myQueueArray[1]) == filesize)))
+        Socket socket = null;
+        PrintWriter peer_out = null;
+        BufferedInputStream peer_in = null;
+
+		while(myQueueArray.length != 2 || !(((Long) myQueueArray[0]) == 0) && (((Long)myQueueArray[1]) == filesize))
 		{
 
 			if(noOfSegmentsDownloaded == 0)
 			{
 				tracker = this.getRecentTracker(filename);
+                filesize = tracker.getDetails().getFilesize();
 			}
-			
-			int noOfSegements = (int) (tracker.getDetails().getFilesize() / max_segment_size);
 
-			File file = new File(currentPath + filename);
 
-			this.writeSampleData(currentPath + filename, noOfSegements);
+			File file = new File(filepath);
 
 			try {
 				RandomAccessFile raFile = new RandomAccessFile(file, "rwd");
 				ArrayList<PeerInfo> peers = this.getSortedPeersOnTimestamp(tracker.getPeers());
 
-				ArrayList<FutureTask<Long>> currentThreadsDownloading = new ArrayList<FutureTask<Long>>();
-
 				for(PeerInfo peer : peers)
 				{
-					myQueueArray = (Long[]) myQueue.toArray();
+					myQueueArray =  myQueue.toArray();
 					long start = this.findSegmentStartForClient(myQueueArray, peer.getStart(), peer.getEnd());
-					long end = start + max_segment_size;
-					FutureTask<Long> currentSegmentDownloadTask = new FutureTask<Long>(new FileSegmentDownload(peer, filename, start, end, raFile, semaphore));
-					currentThreadsDownloading.add(currentSegmentDownloadTask);
-					currentSegmentDownloadTask.run();
+					long end = start + max_segment_size - 1;
+                    end = (end > peer.getEnd() ) ? peer.getEnd():  end;
+                    if( start != -1) {
+                        byte[] buffer = new byte[(int) (end - start + 1)];
+                        try {
+                            socket = new Socket(peer.getIp(), peer.getPort());
+                            peer_out = new PrintWriter(socket.getOutputStream(), true);
+                            peer_in = new BufferedInputStream(socket.getInputStream());
+                        } catch (IOException e) {
+                        //e.printStackTrace();
+                        }
+                        peer_out.println("<GET " + this.filename + " " + start + " " + end+ ">");
+                        int read  = peer_in.read(buffer, 0, (int) ((int) end - start + 1));
+
+                        raFile.seek(start);
+                        raFile.write(buffer, 0, read);
+                        socket.close();
+                        peer_out.close();
+                        peer_in.close();
+                        this.addSegmentToShare(start, end);
+
+                    }
 				}
-
-				for(FutureTask<Long> currentSegmentDownloadTask : currentThreadsDownloading)
-				{
-					long start;
-					try {
-						start = currentSegmentDownloadTask.get();
-						if(start != -1)
-						{
-							long end = start + max_segment_size;
-							this.addSegmentToShare(start, end);
-						}
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (ExecutionException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-				}
-
+                raFile.close();
 
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        SharedFileDetails info = new SharedFileDetails();
+        File f = new File(currentPath);
+        info.filesize = f.length();
+        info.filename = filename;
+        info.description = "desc";
 
 
-		}
-
-
-		
-		return null;
+        try
+        {
+            FileInputStream in = new FileInputStream(f);
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            DigestInputStream din = new DigestInputStream(in, md5);
+            while (din.read() != -1);
+            din.close();
+            byte[] digest = md5.digest();
+            StringBuilder sb = new StringBuilder(2 * digest.length);
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b & 0xff));
+            }
+            info.md5 = sb.toString();
+        }
+        catch (IOException ex)
+        {
+            System.err.println(ex);
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            System.err.println(ex);
+        }
+		return info.md5 == tracker.getDetails().getMd5();
 	}
 
 }
