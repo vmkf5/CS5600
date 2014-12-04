@@ -11,14 +11,18 @@ import server.com.File.manager.Removal15Mins;
 public class Starter {
 	
 	public static Semaphore sem = new Semaphore(1);
+	
+	String relativePath;
 
-	public Starter()
+	public Starter(String relativePath)
 	{
-		
+		this.relativePath = relativePath;
 	}
 	
 	public void ListenSocket()
 	{
+		Removal15Mins remove = new Removal15Mins(sem);
+		remove.run();
 		ServerSocket server = null;
 		try{
 			server = new ServerSocket(4000);
@@ -31,7 +35,7 @@ public class Starter {
 		    ClientWorker w;
 		    try{
 		//server.accept returns a client connection
-		      w = new ClientWorker(server.accept(),sem);
+		      w = new ClientWorker(server.accept(),sem, relativePath);
 		      Thread t = new Thread(w);
 		      t.start();
 		    } catch (IOException e) {
@@ -41,11 +45,10 @@ public class Starter {
 		  }
 	}
 	
-	public static void main(String[] args)
+	/*public static void main(String[] args)
 	{
-		Removal15Mins remove = new Removal15Mins(sem);
-		new Starter().ListenSocket();
+		
 		//UpdateRemoval thread1 = new UpdateRemoval();
 		//thread1.start();
-	}
+	}*/
 }

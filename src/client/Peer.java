@@ -28,6 +28,7 @@ import client.UpdateTrackerThread;
 
 public class Peer
 {
+	private String peerName;
 	private Integer server_port;
 	private InetAddress server_ip;
 	private Integer my_port;
@@ -55,12 +56,14 @@ public class Peer
 	 * Constructor
 	 * @param filename name of the configuration file
 	 */
-	public Peer(String filename, String currentPath) {
+	public Peer(String filename, String peerName) {
 		init();
 		readConfig(filename);
 		connectToServer();
 		//initSharedFiles();
-		this.currentPath = currentPath;
+		File file = new File("");
+		this.currentPath = file.getAbsolutePath();
+		this.peerName = peerName;
 	}
 
 	/**
@@ -70,7 +73,6 @@ public class Peer
 	{
 		server_port  = null;
 		server_ip    = null;
-		my_port      = null;
 		refresh_rate = null;
 		share_dir    = null;
 		segment_size = null;
@@ -81,7 +83,6 @@ public class Peer
 		tracker_list = null;
 		try {
 			ServerSocket socket =new ServerSocket(0);
-            socket.setSoTimeout(100);
 			my_ip = this.getLocalHostLANAddress().toString();
 			//System.out.println("IP: " + my_ip);
 			my_port = socket.getLocalPort();
@@ -101,8 +102,8 @@ public class Peer
 	public void readConfig(String filename)
 	{
 		Properties prop = new Properties();
-        String path = System.getProperty("user.dir");
-        filename = this.combine(path, filename);
+		String path = System.getProperty("user.dir");
+		filename = this.combine(path, filename);
 		InputStream input = null;
 		try
 		{
@@ -326,15 +327,22 @@ public class Peer
 
 			Object[] myQueueArray = myQueue.toArray();
 			ArrayList<Long> removeObjects = new ArrayList<Long>();
+			long share_start = start;
+			long share_end = end;
 			for(int lcv = 0;lcv < myQueueArray.length; lcv++)
 			{
 				Long sampleStart = (Long) myQueueArray[lcv];
 				lcv++;
 				Long sampleEnd = (Long) myQueueArray[lcv];
-				if(sampleEnd == start -1  || sampleStart == end + 1 || (sampleStart>= start && sampleEnd<=end))
+				if(sampleEnd == start - 1 || sampleStart == end + 1 || (sampleStart>= start && sampleEnd<=end))
 				{
+
 					removeObjects.add(sampleStart);
 					removeObjects.add(sampleEnd);
+					share_start = (sampleStart < share_start) ? sampleStart : share_start;
+					share_start = ( start < share_start )  ? start : share_start;
+					share_end   = (sampleEnd > share_end ) ? sampleEnd : share_end;
+					share_end   = (end > share_end) ? end : share_end;
 				}
 			}
 
@@ -342,8 +350,8 @@ public class Peer
 			utThread.wait();
 			if(removeObjects.size() > 0)
 				myQueue.removeAll(removeObjects);
-			myQueue.put(start);
-			myQueue.put(end);
+			myQueue.put(share_start);
+			myQueue.put(share_end);
 			fsManager.notify();
 			utThread.notify();
 
@@ -533,7 +541,6 @@ public class Peer
 		try {
 			while( resp != null && !resp.contains(end_token) )
 			{
-                resp = in.readLine();
 				message.add(resp);
 			}
 		} catch (IOException e) {
@@ -658,17 +665,16 @@ public class Peer
 	}
 
 
-	public static void main(String[] args)
-    {
-        File file = new File("");
-		Peer peer = new Peer("src/data/config.properties", file.getAbsolutePath());
-		//peer.startFileSenderManager("qute.jpg", 0, 19687);
-        peer.getTrackerList();
-        peer.getFileTracker("qute.jpg");
-        while(true)
-        {
+	/*public static void main(String[] args)
+	{
+		File file = new File("");
+		Peer peer = new Peer("/src/data/config.properties","");
 
-        }
-		//peer.close();
-	}
+		//peer.getTrackerList();
+		peer.getFileTracker("qute.jpg");
+
+		while(true);
+		//peer.startFileSenderManager();
+
+	}*/
 }

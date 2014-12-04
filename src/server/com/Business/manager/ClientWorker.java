@@ -23,6 +23,7 @@ public class ClientWorker extends Thread {
 
 	private Socket client;
 	private Semaphore sem;
+	private String relativePath;
 
 
 	public ClientWorker()
@@ -30,9 +31,10 @@ public class ClientWorker extends Thread {
 
 	}
 
-	public ClientWorker(Socket client, Semaphore sem) {
+	public ClientWorker(Socket client, Semaphore sem, String relativePath) {
 		this.client = client;
 		this.sem = sem;
+		this.relativePath = relativePath;
 	}
 
 
@@ -56,7 +58,7 @@ public class ClientWorker extends Thread {
 						System.out.println("Inside create tracker");
 						try {
 							RespCreateTracker resp = new RespCreateTracker();
-							if(new FileManager(sem).executeCreateTracker(new createFileTrackerMessage(line)))
+							if(new FileManager(sem,relativePath).executeCreateTracker(new createFileTrackerMessage(line)))
 							{
 								resp.setResponse("succ");
 							}
@@ -84,7 +86,7 @@ public class ClientWorker extends Thread {
 						try {
 							RespUpdateTracker resp = new RespUpdateTracker();
 							updateTracker message = new updateTracker(line);
-							resp = new FileManager(sem).executeUpdateTracker(message);
+							resp = new FileManager(sem, relativePath).executeUpdateTracker(message);
 							System.out.println(resp);
 							out.println(resp.toString());
 						} catch (UpdateTrackerException e) {
@@ -99,19 +101,21 @@ public class ClientWorker extends Thread {
 					{
 						System.out.println("Inside List");
 						RespList resp = new RespList();
-						resp = new FileManager(sem).executeList();
+						resp = new FileManager(sem, relativePath).executeList();
+						out.println(resp.toString());
+						//out.println("");
 						System.out.println(resp);
-						out.println(resp);
-
+						
 					}
 					else if(line.contains("GET"))
 					{
 						System.out.println("Inside GET");
 						RespGetFile resp = new RespGetFile();
 						try {
-							resp = new FileManager(sem).executeGet(new getFileTracker(line));
-							System.out.println(resp.toString());
+							resp = new FileManager(sem, relativePath).executeGet(new getFileTracker(line));
 							out.println(resp.toString());
+							System.out.println(resp.toString());
+							
 						} catch (GetFileTrackerMessageException e) {
 							out.print("ResponseGetMessage ferr");
 						}
@@ -132,6 +136,7 @@ public class ClientWorker extends Thread {
 		}
 		catch(Exception e)
 		{
+			e.printStackTrace();
 			System.out.println("exiting...");
 		}
 	}
