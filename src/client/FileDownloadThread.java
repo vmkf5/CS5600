@@ -60,10 +60,10 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 
 			int port = sample.getLocalPort();
 			myQueue = new LinkedBlockingQueue<Long>();
-			fsManager = new FileSenderManager(currentPath + filename, port, myQueue);
+			/*fsManager = new FileSenderManager(currentPath + filename, port, myQueue);
 			fsManager.run();
 			utThread = new UpdateTrackerThread(filename, myQueue, sample.getInetAddress().toString().substring(1), String.valueOf(port), out, in);
-			utThread.run();
+			utThread.run();*/
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -268,7 +268,7 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 		return peers;
 	}
 
-	public long findSegmentStartForClient(Long[] myQueueArray, long start, long end)
+	public long findSegmentStartForClient(Object[] myQueueArray, long start, long end)
 	{
 		long segmentStart = start;
 		long segmentEnd = start + max_segment_size;
@@ -277,9 +277,9 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 		{
 			for(int i = 0; i < myQueueArray.length ; i++)
 			{
-				long downloadedStart = myQueueArray[i];
+				long downloadedStart = (Long) myQueueArray[i];
 				i++;
-				long downloadedEnd = myQueueArray[i];
+				long downloadedEnd = (Long) myQueueArray[i];
 
 				if(segmentStart >= downloadedStart && segmentEnd <= downloadedEnd)
 				{
@@ -308,10 +308,10 @@ public class FileDownloadThread implements Callable<UpdateTrackerThread> {
 	{
 		int noOfSegmentsDownloaded = 0;
 		long filesize = -1;
-		Long[] myQueueArray = (Long []) myQueue.toArray();
+		Object[] myQueueArray = myQueue.toArray();
 		FileTracker tracker = new FileTracker();
 		
-		while(!(myQueueArray.length == 2 && myQueueArray[0] == 0 && myQueueArray[1] == filesize))
+		while(!(myQueueArray.length == 2 && (((Long) myQueueArray[0]) == 0) && (((Long)myQueueArray[1]) == filesize)))
 		{
 
 			if(noOfSegmentsDownloaded == 0)

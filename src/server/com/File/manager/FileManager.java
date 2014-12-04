@@ -93,6 +93,7 @@ public class FileManager {
 	}
 
 	public RespGetFile executeGet(getFileTracker getFileTracker) {
+		System.out.println("Inside File Get:" + classpath + section + getFileTracker.getFileName() + ".tracker");
 		File file = new File(classpath + section + getFileTracker.getFileName() + ".tracker");
 		if(file.exists())
 		{
@@ -102,13 +103,22 @@ public class FileManager {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			FileTracker tracker = new FileTrackerModify().read(getFileTracker.getFileName());
+			FileTracker tracker = new FileTrackerModify().read(file.getName());
 			sem.release();
 			RespGetFile resp = new RespGetFile();
-			resp.setDescription(tracker.getDetails().getDescription());
+			if(tracker == null)
+			{
+				System.out.println("tracker is null");
+			}
+			else if(tracker.getDetails() == null)
+				System.out.println("tracker details is null");
+			else if(tracker.getPeers() == null)
+				System.out.println("tracker peers is null");
 			resp.setFileName(tracker.getDetails().getFilename());
 			resp.setFileSize(tracker.getDetails().getFilesize());
 			resp.setMd5(tracker.getDetails().getMd5());
+			resp.setDescription(tracker.getDetails().getDescription());
+			
 			ArrayList<FilePeers> peers = new ArrayList<FilePeers>();
 
 			for(Iterator<PeerInfo> ite = tracker.getPeers().iterator(); ite.hasNext();)
@@ -126,6 +136,8 @@ public class FileManager {
 
 			resp.setPeers(peers);
 
+			System.out.println(resp.toString());
+			
 			return resp;
 
 		}
@@ -231,8 +243,4 @@ public class FileManager {
 		resp.setResponse("ferr");
 		return resp;
 	}
-
-
-
-
 }

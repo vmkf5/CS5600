@@ -9,6 +9,7 @@ import server.com.File.Models.SharedFileDetails;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
@@ -79,9 +80,15 @@ public class Peer
 		in           = null;
 		tracker_list = null;
 		try {
+			ServerSocket socket =new ServerSocket(0);
 			my_ip = this.getLocalHostLANAddress().toString();
 			System.out.println("IP: " + my_ip);
+			my_port = socket.getLocalPort();
+			socket.close();
 		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -103,7 +110,7 @@ public class Peer
 
 			this.server_port = Integer.parseInt(prop.getProperty("server_port", "8080"));
 			this.server_ip   = InetAddress.getByName(prop.getProperty("server_ip", "localhost"));
-			this.my_port   = Integer.parseInt(prop.getProperty("peer_port", "8081"));
+			//this.my_port   = Integer.parseInt(prop.getProperty("peer_port", "8081"));
 			this.refresh_rate= Integer.parseInt(prop.getProperty("refresh_rate", "60"));
 			this.share_dir   = prop.getProperty("share_dir", "shares");
 			this.segment_size= Integer.parseInt(prop.getProperty("segment_size"));
